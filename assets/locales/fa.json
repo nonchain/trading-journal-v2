@@ -1,0 +1,164 @@
+{
+  "app": {
+    "name": "ژورنال ترید TV",
+    "tagline": "ژورنال کنار چارت‌ها"
+  },
+  "nav": {
+    "overview": "نمای کلی",
+    "trades": "معاملات",
+    "statistics": "آمار",
+    "tags": "ستاپ‌ها و برچسب‌ها",
+    "settings": "تنظیمات"
+  },
+  "common": {
+    "loading": "در حال بارگذاری…",
+    "save": "ذخیره",
+    "cancel": "لغو",
+    "delete": "حذف",
+    "edit": "ویرایش",
+    "create": "ایجاد",
+    "close": "بستن",
+    "confirm": "تأیید",
+    "search": "جستجو",
+    "empty": "هنوز چیزی نیست",
+    "openDashboard": "باز کردن داشبورد",
+    "openSidebar": "باز کردن سایدبار",
+    "today": "امروز",
+    "thisWeek": "این هفته",
+    "all": "همه",
+    "long": "لانگ",
+    "short": "شورت",
+    "planned": "برنامه‌ریزی‌شده",
+    "open": "باز",
+    "closed": "بسته‌شده",
+    "columns": "ستون‌ها",
+    "actions": "عملیات",
+    "openMenu": "باز کردن منو",
+    "previous": "قبلی",
+    "next": "بعدی",
+    "of": "از",
+    "page": "صفحه",
+    "noResults": "نتیجه‌ای نیست",
+    "optional": "اختیاری"
+  },
+  "kpi": {
+    "winRate": "نرخ برد",
+    "totalPnl": "سود و زیان کل",
+    "avgR": "میانگین R",
+    "streak": "رشته پی‌درپی",
+    "wins": "{{count}} برد",
+    "losses": "{{count}} باخت",
+    "none": "بدون رشته"
+  },
+  "overview": {
+    "title": "نمای کلی",
+    "equityCurve": "منحنی سرمایه",
+    "pnlCalendar": "تقویم سود و زیان",
+    "emptyTitle": "ژورنال را شروع کنید",
+    "emptyDescription": "اولین معامله را ثبت کنید تا منحنی سرمایه و نرخ برد را ببینید."
+  },
+  "trades": {
+    "title": "معاملات",
+    "newTrade": "معامله جدید",
+    "logTrade": "ثبت معامله",
+    "editTrade": "ویرایش معامله",
+    "detail": "جزئیات معامله",
+    "recent": "معاملات اخیر",
+    "emptyTitle": "هنوز معامله‌ای نیست",
+    "emptyDescription": "ستاپ‌ها را هنگام ترید ثبت کنید — کمتر از ۱۵ ثانیه.",
+    "screenshot": "اسکرین‌شات چارت",
+    "noScreenshot": "اسکرین‌شاتی پیوست نشده",
+    "deleteConfirm": "این معامله برای همیشه حذف شود؟",
+    "actions": {
+      "closeAtStopLoss": "بستن در حد ضرر",
+      "closeAtTakeProfit": "بستن در حد سود"
+    },
+    "columns": {
+      "date": "تاریخ",
+      "symbol": "نماد",
+      "setup": "ستاپ",
+      "direction": "جهت",
+      "rMultiple": "R",
+      "pnl": "سود/زیان",
+      "emotion": "احساس",
+      "status": "وضعیت"
+    },
+    "fields": {
+      "symbol": "نماد",
+      "direction": "جهت",
+      "entry": "ورود",
+      "exit": "خروج",
+      "stop": "حد ضرر",
+      "target": "حد سود",
+      "size": "حجم",
+      "risk": "مقدار ریسک",
+      "setup": "ستاپ",
+      "emotion": "احساس",
+      "notes": "تز / یادداشت",
+      "status": "وضعیت",
+      "date": "تاریخ معامله",
+      "closedAt": "زمان خروج",
+      "captureScreenshot": "گرفتن اسکرین چارت"
+    }
+  },
+  "stats": {
+    "title": "آمار",
+    "winRateBySetup": "نرخ برد بر اساس ستاپ",
+    "pnlBySymbol": "سود/زیان بر اساس نماد",
+    "winRateBySession": "نرخ برد بر اساس سشن",
+    "rDistribution": "توزیع R-multiple",
+    "emptyTitle": "داده کافی نیست",
+    "emptyDescription": "چند معامله بسته ثبت کنید تا آمار عمیق‌تر فعال شود."
+  },
+  "tags": {
+    "title": "ستاپ‌ها و برچسب‌ها",
+    "setups": "برچسب‌های ستاپ",
+    "emotions": "برچسب‌های احساس",
+    "addSetup": "افزودن ستاپ",
+    "addEmotion": "افزودن احساس",
+    "editTag": "ویرایش برچسب",
+    "name": "نام",
+    "color": "رنگ",
+    "emptySetups": "هنوز ستاپی نیست",
+    "emptyEmotions": "هنوز برچسب احساسی نیست",
+    "deleteConfirm": "این برچسب حذف شود؟"
+  },
+  "settings": {
+    "title": "تنظیمات",
+    "language": "زبان",
+    "theme": "پوسته",
+    "themeLight": "روشن",
+    "themeDark": "تیره",
+    "themeSystem": "سیستم",
+    "export": "خروجی داده",
+    "import": "ورود داده",
+    "clear": "پاک کردن همه داده‌ها",
+    "clearConfirmTitle": "ژورنال پاک شود؟",
+    "clearConfirmDescription": "همه معاملات برای همیشه حذف می‌شوند. برچسب‌ها به پیش‌فرض برمی‌گردند. قابل بازگشت نیست.",
+    "exportSuccess": "خروجی دانلود شد",
+    "importSuccess": "داده وارد شد",
+    "clearSuccess": "ژورنال پاک شد",
+    "importError": "فایل ژورنال نامعتبر است"
+  },
+  "toast": {
+    "created": "معامله ذخیره شد",
+    "updated": "معامله به‌روز شد",
+    "deleted": "معامله حذف شد",
+    "closedAtStopLoss": "در حد ضرر بسته شد",
+    "closedAtTakeProfit": "در حد سود بسته شد",
+    "tagSaved": "برچسب ذخیره شد",
+    "tagDeleted": "برچسب حذف شد",
+    "error": "مشکلی پیش آمد"
+  },
+  "popup": {
+    "title": "دسترسی سریع",
+    "viewAll": "مشاهده همه در داشبورد"
+  },
+  "sidepanel": {
+    "title": "ژورنال",
+    "filterBySetup": "بر اساس ستاپ"
+  },
+  "content": {
+    "logTrade": "ثبت معامله"
+  }
+}

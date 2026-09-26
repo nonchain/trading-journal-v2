@@ -1,0 +1,164 @@
+{
+  "app": {
+    "name": "TV Trade Journal",
+    "tagline": "Journal beside your charts"
+  },
+  "nav": {
+    "overview": "Overview",
+    "trades": "Trades",
+    "statistics": "Statistics",
+    "tags": "Setups & Tags",
+    "settings": "Settings"
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "close": "Close",
+    "confirm": "Confirm",
+    "search": "Search",
+    "empty": "Nothing here yet",
+    "openDashboard": "Open Dashboard",
+    "openSidebar": "Open Sidebar",
+    "today": "Today",
+    "thisWeek": "This week",
+    "all": "All",
+    "long": "Long",
+    "short": "Short",
+    "planned": "Planned",
+    "open": "Open",
+    "closed": "Closed",
+    "columns": "Columns",
+    "actions": "Actions",
+    "openMenu": "Open menu",
+    "previous": "Previous",
+    "next": "Next",
+    "of": "of",
+    "page": "Page",
+    "noResults": "No results",
+    "optional": "Optional"
+  },
+  "kpi": {
+    "winRate": "Win rate",
+    "totalPnl": "Total P&L",
+    "avgR": "Avg R",
+    "streak": "Streak",
+    "wins": "{{count}} wins",
+    "losses": "{{count}} losses",
+    "none": "No streak"
+  },
+  "overview": {
+    "title": "Overview",
+    "equityCurve": "Equity curve",
+    "pnlCalendar": "P&L calendar",
+    "emptyTitle": "Start your journal",
+    "emptyDescription": "Log your first trade to see equity, win rate, and calendar heatmaps."
+  },
+  "trades": {
+    "title": "Trades",
+    "newTrade": "New Trade",
+    "logTrade": "Log Trade",
+    "editTrade": "Edit Trade",
+    "detail": "Trade detail",
+    "recent": "Recent trades",
+    "emptyTitle": "No trades yet",
+    "emptyDescription": "Capture setups as you trade — it takes under 15 seconds.",
+    "screenshot": "Chart screenshot",
+    "noScreenshot": "No screenshot attached",
+    "deleteConfirm": "Delete this trade permanently?",
+    "actions": {
+      "closeAtStopLoss": "Close at Stop Loss",
+      "closeAtTakeProfit": "Close at Take Profit"
+    },
+    "columns": {
+      "date": "Date",
+      "symbol": "Symbol",
+      "setup": "Setup",
+      "direction": "Direction",
+      "rMultiple": "R",
+      "pnl": "P&L",
+      "emotion": "Emotion",
+      "status": "Status"
+    },
+    "fields": {
+      "symbol": "Symbol",
+      "direction": "Direction",
+      "entry": "Entry",
+      "exit": "Exit",
+      "stop": "Stop loss",
+      "target": "Take profit",
+      "size": "Size",
+      "risk": "Risk amount",
+      "setup": "Setup",
+      "emotion": "Emotion",
+      "notes": "Thesis / notes",
+      "status": "Status",
+      "date": "Trade date",
+      "closedAt": "Exit time",
+      "captureScreenshot": "Capture chart"
+    }
+  },
+  "stats": {
+    "title": "Statistics",
+    "winRateBySetup": "Win rate by setup",
+    "pnlBySymbol": "P&L by symbol",
+    "winRateBySession": "Win rate by session",
+    "rDistribution": "R-multiple distribution",
+    "emptyTitle": "Not enough data",
+    "emptyDescription": "Close a few trades to unlock deeper breakdowns."
+  },
+  "tags": {
+    "title": "Setups & Tags",
+    "setups": "Setup tags",
+    "emotions": "Emotion tags",
+    "addSetup": "Add setup",
+    "addEmotion": "Add emotion",
+    "editTag": "Edit tag",
+    "name": "Name",
+    "color": "Color",
+    "emptySetups": "No setup tags yet",
+    "emptyEmotions": "No emotion tags yet",
+    "deleteConfirm": "Delete this tag?"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "export": "Export data",
+    "import": "Import data",
+    "clear": "Clear all data",
+    "clearConfirmTitle": "Clear journal?",
+    "clearConfirmDescription": "This permanently deletes all trades. Tags reset to defaults. This cannot be undone.",
+    "exportSuccess": "Export downloaded",
+    "importSuccess": "Data imported",
+    "clearSuccess": "Journal cleared",
+    "importError": "Invalid journal file"
+  },
+  "toast": {
+    "created": "Trade saved",
+    "updated": "Trade updated",
+    "deleted": "Trade deleted",
+    "closedAtStopLoss": "Closed at stop loss",
+    "closedAtTakeProfit": "Closed at take profit",
+    "tagSaved": "Tag saved",
+    "tagDeleted": "Tag deleted",
+    "error": "Something went wrong"
+  },
+  "popup": {
+    "title": "Quick Access",
+    "viewAll": "View all in dashboard"
+  },
+  "sidepanel": {
+    "title": "Journal",
+    "filterBySetup": "By setup"
+  },
+  "content": {
+    "logTrade": "Log Trade"
+  }
+}
