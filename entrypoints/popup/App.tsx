@@ -1,38 +1,18 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TradeCard } from '@/components/trades/trade-card';
-import { TradeForm } from '@/components/trades/trade-form';
+import { NewTradeButton } from '@/components/trades/trade-form-dialog';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Icon } from '@/components/ui/icon';
 import { EmptyState } from '@/components/shared/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/components/ui/toaster';
 import { useJournal } from '@/hooks/use-journal';
-import { journalRepo } from '@/lib/storage';
-import type { TradeFormValues } from '@/lib/types';
 
 export function PopupApp() {
   const { t } = useTranslation();
   const { trades, setups, emotions, loading, refresh } = useJournal();
   const [open, setOpen] = useState(false);
   const recent = trades.slice(0, 5);
-
-  async function handleCreate(values: TradeFormValues) {
-    try {
-      await journalRepo.create(values);
-      toast.success(t('toast.created'));
-      setOpen(false);
-      refresh();
-    } catch {
-      toast.error(t('toast.error'));
-    }
-  }
 
   return (
     <div className="flex min-h-[460px] flex-col bg-background p-3">
@@ -41,10 +21,14 @@ export function PopupApp() {
           <p className="text-xs text-muted-foreground">{t('popup.title')}</p>
           <h1 className="text-base font-semibold">{t('app.name')}</h1>
         </div>
-        <Button size="sm" onClick={() => setOpen(true)}>
-          <Icon name="add-line" />
-          {t('trades.newTrade')}
-        </Button>
+        <NewTradeButton
+          compact
+          open={open}
+          onOpenChange={setOpen}
+          setups={setups}
+          emotions={emotions}
+          onSaved={refresh}
+        />
       </div>
 
       <div className="mb-3 flex gap-2">
@@ -93,21 +77,6 @@ export function PopupApp() {
           ))}
         </div>
       )}
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t('trades.newTrade')}</DialogTitle>
-          </DialogHeader>
-          <TradeForm
-            compact
-            setups={setups}
-            emotions={emotions}
-            onCancel={() => setOpen(false)}
-            onSubmit={handleCreate}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

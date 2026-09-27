@@ -103,6 +103,7 @@ export function getTradeColumns({
           value={row.original.pnl}
           variant="currency"
           locale={locale}
+          decimals={4}
           signed
           className="font-medium"
         />

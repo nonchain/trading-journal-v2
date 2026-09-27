@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/components/ui/toaster';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useLocale } from '@/hooks/use-locale';
 import { formatDayKey, now } from '@/lib/date';
 import { setLocale } from '@/lib/i18n';
 import type { Locale, ThemeMode } from '@/lib/schemas';
@@ -26,23 +27,11 @@ import { journalRepo } from '@/lib/storage';
 import { useTheme } from '@/lib/theme';
 
 export function SettingsPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
-  const [locale, setLocaleState] = useState<Locale>(
-    (i18n.language as Locale) || 'en',
-  );
+  const { locale, changeLocale } = useLocale();
   const fileRef = useRef<HTMLInputElement>(null);
   const [clearOpen, setClearOpen] = useState(false);
-
-  useEffect(() => {
-    journalRepo.getSettings().then((s) => setLocaleState(s.locale));
-  }, []);
-
-  async function changeLocale(next: Locale) {
-    setLocaleState(next);
-    await journalRepo.updateSettings({ locale: next });
-    await setLocale(next);
-  }
 
   async function exportData() {
     try {
@@ -68,7 +57,6 @@ export function SettingsPage() {
       await journalRepo.importAll(JSON.parse(text));
       const settings = await journalRepo.getSettings();
       await setLocale(settings.locale);
-      setLocaleState(settings.locale);
       await setTheme(settings.theme);
       toast.success(t('settings.importSuccess'));
     } catch {
@@ -101,8 +89,8 @@ export function SettingsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="en">English</SelectItem>
               <SelectItem value="fa">فارسی</SelectItem>
+              <SelectItem value="en">English</SelectItem>
             </SelectContent>
           </Select>
         </CardContent>

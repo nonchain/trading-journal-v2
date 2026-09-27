@@ -68,7 +68,7 @@ export const tagFormSchema = z.object({
 });
 
 export const settingsSchema = z.object({
-  locale: localeSchema.default('en'),
+  locale: localeSchema.default('fa'),
   theme: themeSchema.default('dark'),
   currency: z.string().default('USD'),
 });

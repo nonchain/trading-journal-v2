@@ -39,7 +39,7 @@ const emotionsItem = storage.defineItem<EmotionTag[]>('local:emotionTags', {
 });
 
 const settingsItem = storage.defineItem<Settings>('local:settings', {
-  fallback: { locale: 'en', theme: 'dark', currency: 'USD' },
+  fallback: { locale: 'fa', theme: 'dark', currency: 'USD' },
 });
 
 async function notifyChanged() {

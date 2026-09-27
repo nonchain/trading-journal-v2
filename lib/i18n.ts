@@ -11,7 +11,7 @@ const resources = {
 
 let initialized = false;
 
-export async function initI18n(locale: Locale = 'en') {
+export async function initI18n(locale: Locale = 'fa') {
   if (!initialized) {
     await i18n.use(initReactI18next).init({
       resources,

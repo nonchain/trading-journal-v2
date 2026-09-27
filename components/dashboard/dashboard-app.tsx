@@ -1,18 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { LanguageMenu, ThemeMenu } from '@/components/dashboard/navbar-preferences';
 import { OverviewPage } from '@/components/dashboard/overview-page';
 import { SettingsPage } from '@/components/dashboard/settings-page';
 import { StatisticsPage } from '@/components/dashboard/statistics-page';
 import { TagsPage } from '@/components/dashboard/tags-page';
 import { TradesPage } from '@/components/dashboard/trades-page';
-import { TradeForm } from '@/components/trades/trade-form';
+import { NewTradeButton } from '@/components/trades/trade-form-dialog';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Icon } from '@/components/ui/icon';
 import {
   Sheet,
@@ -21,11 +16,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { toast } from '@/components/ui/toaster';
 import { useJournal } from '@/hooks/use-journal';
-import { journalRepo } from '@/lib/storage';
 import { cn } from '@/lib/utils';
-import type { TradeFormValues } from '@/lib/types';
 
 type Section = 'overview' | 'trades' | 'statistics' | 'tags' | 'settings';
 
@@ -76,17 +68,6 @@ export function DashboardApp() {
   const [section, setSection] = useState<Section>('overview');
   const [formOpen, setFormOpen] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
-
-  async function handleCreate(values: TradeFormValues) {
-    try {
-      await journalRepo.create(values);
-      toast.success(t('toast.created'));
-      setFormOpen(false);
-      refresh();
-    } catch {
-      toast.error(t('toast.error'));
-    }
-  }
 
   const title =
     section === 'overview'
@@ -140,11 +121,17 @@ export function DashboardApp() {
             </SheetContent>
           </Sheet>
           <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-          <div className="ms-auto">
-            <Button size="sm" onClick={() => setFormOpen(true)}>
-              <Icon name="add-line" />
-              {t('trades.newTrade')}
-            </Button>
+          <div className="ms-auto flex items-center gap-1">
+            <LanguageMenu />
+            <ThemeMenu />
+            <NewTradeButton
+              className="ms-1"
+              open={formOpen}
+              onOpenChange={setFormOpen}
+              setups={setups}
+              emotions={emotions}
+              onSaved={refresh}
+            />
           </div>
         </header>
 
@@ -177,20 +164,6 @@ export function DashboardApp() {
           {section === 'settings' && <SettingsPage />}
         </main>
       </div>
-
-      <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle>{t('trades.newTrade')}</DialogTitle>
-          </DialogHeader>
-          <TradeForm
-            setups={setups}
-            emotions={emotions}
-            onCancel={() => setFormOpen(false)}
-            onSubmit={handleCreate}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

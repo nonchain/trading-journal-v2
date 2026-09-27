@@ -3,23 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/shared/empty-state';
 import { TradeCard } from '@/components/trades/trade-card';
 import { TradeDetailSheet } from '@/components/trades/trade-detail-sheet';
-import { TradeForm } from '@/components/trades/trade-form';
+import { NewTradeButton } from '@/components/trades/trade-form-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Icon } from '@/components/ui/icon';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/components/ui/toaster';
 import { useJournal } from '@/hooks/use-journal';
 import { filterTrades } from '@/lib/stats';
-import { journalRepo } from '@/lib/storage';
-import type { Trade, TradeFilter, TradeFormValues } from '@/lib/types';
+import type { Trade, TradeFilter } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 export function SidepanelApp() {
@@ -33,17 +25,6 @@ export function SidepanelApp() {
     () => filterTrades(trades, filter).slice(0, 30),
     [trades, filter],
   );
-
-  async function handleCreate(values: TradeFormValues) {
-    try {
-      await journalRepo.create(values);
-      toast.success(t('toast.created'));
-      setFormOpen(false);
-      refresh();
-    } catch {
-      toast.error(t('toast.error'));
-    }
-  }
 
   const chips: Array<{ label: string; value: TradeFilter }> = [
     { label: t('common.all'), value: { kind: 'all' } },
@@ -65,10 +46,14 @@ export function SidepanelApp() {
             </p>
             <h1 className="text-base font-semibold">{t('app.name')}</h1>
           </div>
-          <Button size="sm" onClick={() => setFormOpen(true)}>
-            <Icon name="add-line" />
-            {t('trades.newTrade')}
-          </Button>
+          <NewTradeButton
+            compact
+            open={formOpen}
+            onOpenChange={setFormOpen}
+            setups={setups}
+            emotions={emotions}
+            onSaved={refresh}
+          />
         </div>
         <Button
           variant="ghost"
@@ -128,21 +113,6 @@ export function SidepanelApp() {
           </div>
         )}
       </ScrollArea>
-
-      <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t('trades.newTrade')}</DialogTitle>
-          </DialogHeader>
-          <TradeForm
-            compact
-            setups={setups}
-            emotions={emotions}
-            onCancel={() => setFormOpen(false)}
-            onSubmit={handleCreate}
-          />
-        </DialogContent>
-      </Dialog>
 
       <TradeDetailSheet
         trade={selected}
