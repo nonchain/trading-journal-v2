@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AccountGate } from '@/components/accounts/account-onboarding';
+import { AccountSwitcher } from '@/components/accounts/account-switcher';
 import { EmptyState } from '@/components/shared/empty-state';
 import { TradeCard } from '@/components/trades/trade-card';
 import { TradeDetailSheet } from '@/components/trades/trade-detail-sheet';
@@ -10,11 +12,22 @@ import { Icon } from '@/components/ui/icon';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useJournal } from '@/hooks/use-journal';
+import { openDashboard } from '@/lib/navigation';
 import { filterTrades } from '@/lib/stats';
 import type { Trade, TradeFilter } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 export function SidepanelApp() {
+  return (
+    <div className="flex h-screen flex-col overflow-y-auto bg-background">
+      <AccountGate compact>
+        <SidepanelContent />
+      </AccountGate>
+    </div>
+  );
+}
+
+function SidepanelContent() {
   const { t } = useTranslation();
   const { trades, setups, emotions, loading, refresh } = useJournal();
   const [filter, setFilter] = useState<TradeFilter>({ kind: 'all' });
@@ -37,15 +50,13 @@ export function SidepanelApp() {
   ];
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <>
       <header className="border-b px-3 py-3">
         <div className="flex items-center justify-between gap-2">
-          <div>
-            <p className="text-xs text-muted-foreground">
-              {t('sidepanel.title')}
-            </p>
-            <h1 className="text-base font-semibold">{t('app.name')}</h1>
-          </div>
+          <AccountSwitcher
+            className="-ms-2"
+            onManage={() => openDashboard('settings')}
+          />
           <NewTradeButton
             compact
             open={formOpen}
@@ -119,6 +130,6 @@ export function SidepanelApp() {
         open={!!selected}
         onOpenChange={(open) => !open && setSelected(null)}
       />
-    </div>
+    </>
   );
 }

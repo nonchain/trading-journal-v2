@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AccountsSettingsCard } from '@/components/accounts/accounts-settings-card';
 import { toast } from '@/components/ui/toaster';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,6 +77,8 @@ export function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-xl space-y-4">
+      <AccountsSettingsCard />
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t('settings.language')}</CardTitle>

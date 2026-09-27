@@ -1,3 +1,4 @@
+import { createContext, useContext, type ReactNode } from 'react';
 import {
   formatNumberValue,
   NUMBER_VALUE_FALLBACK,
@@ -7,6 +8,25 @@ import {
 import { cn } from '@/lib/utils';
 
 export type { NumberValueVariant };
+
+const CurrencyContext = createContext<string | undefined>(undefined);
+
+/** Default currency for every `NumberValue variant="currency"` below it. */
+export function NumberCurrencyProvider({
+  currency,
+  children,
+}: {
+  currency: string | undefined;
+  children: ReactNode;
+}) {
+  return (
+    <CurrencyContext.Provider value={currency}>{children}</CurrencyContext.Provider>
+  );
+}
+
+export function useNumberCurrency(): string | undefined {
+  return useContext(CurrencyContext);
+}
 
 type NumberValueProps = FormatNumberValueOptions & {
   value: unknown;
@@ -40,10 +60,11 @@ export function NumberValue({
   className,
   title,
 }: NumberValueProps) {
+  const contextCurrency = useNumberCurrency();
   const result = formatNumberValue(value, {
     variant,
     decimals,
-    currency,
+    currency: currency ?? contextCurrency,
     locale,
   });
 

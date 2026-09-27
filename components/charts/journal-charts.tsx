@@ -10,6 +10,7 @@ import {
   now,
 } from '@/lib/date';
 import { APP_FONT_STACK } from '@/lib/fonts';
+import { useNumberCurrency } from '@/components/ui/number-value';
 import { formatNumberValue } from '@/lib/number';
 import type { Locale } from '@/lib/schemas';
 import type { JournalStats } from '@/lib/types';
@@ -83,23 +84,30 @@ function useChartLocale() {
     () => ({ fontFamily: APP_FONT_STACK[locale] }),
     [locale, fontsVersion],
   );
+  const currency = useNumberCurrency();
 
-  return { locale, textStyle };
+  return { locale, textStyle, currency };
 }
 
-function formatCurrency(value: unknown, locale: Locale) {
-  return formatNumberValue(value, { variant: 'currency', locale }).text;
+function formatCurrency(value: unknown, locale: Locale, currency?: string) {
+  return formatNumberValue(value, { variant: 'currency', locale, currency }).text;
 }
 
-export function EquityCurveChart({ data }: { data: JournalStats['equityCurve'] }) {
+export function EquityCurveChart({
+  data,
+  color = '#3B82F6',
+}: {
+  data: JournalStats['equityCurve'];
+  color?: string;
+}) {
   const { t } = useTranslation();
   const dark = useIsDark();
-  const { locale, textStyle } = useChartLocale();
+  const { locale, textStyle, currency } = useChartLocale();
   const option = useMemo(
     () => ({
       backgroundColor: 'transparent',
       textStyle,
-      grid: { left: 40, right: 16, top: 24, bottom: 28 },
+      grid: { left: 16, right: 16, top: 24, bottom: 28, containLabel: true },
       tooltip: {
         trigger: 'axis',
         textStyle,
@@ -114,7 +122,7 @@ export function EquityCurveChart({ data }: { data: JournalStats['equityCurve'] }
           const first = params[0];
           if (!first) return '';
           const date = formatDate(first.axisValue, DATE_PATTERNS[locale].long, locale);
-          return `${date}<br/>${first.marker}${first.seriesName}: ${formatCurrency(first.value, locale)}`;
+          return `${date}<br/>${first.marker}${first.seriesName}: ${formatCurrency(first.value, locale, currency)}`;
         },
       },
       xAxis: {
@@ -128,7 +136,13 @@ export function EquityCurveChart({ data }: { data: JournalStats['equityCurve'] }
       },
       yAxis: {
         type: 'value',
-        axisLabel: { color: dark ? '#a1a1aa' : '#71717a' },
+        // Equity is a balance, so don't force the axis down to zero.
+        scale: true,
+        axisLabel: {
+          color: dark ? '#a1a1aa' : '#71717a',
+          formatter: (value: number) =>
+            formatNumberValue(value, { decimals: 0, locale }).text,
+        },
         splitLine: { lineStyle: { color: dark ? '#27272a' : '#e4e4e7' } },
       },
       series: [
@@ -138,13 +152,13 @@ export function EquityCurveChart({ data }: { data: JournalStats['equityCurve'] }
           smooth: true,
           showSymbol: false,
           areaStyle: { opacity: 0.12 },
-          lineStyle: { width: 2, color: '#3B82F6' },
-          itemStyle: { color: '#3B82F6' },
+          lineStyle: { width: 2, color },
+          itemStyle: { color },
           data: data.map((d) => d.equity),
         },
       ],
     }),
-    [data, dark, t, locale, textStyle],
+    [data, dark, t, locale, textStyle, currency, color],
   );
 
   return <ReactECharts option={option} style={{ height: 280 }} />;
@@ -152,7 +166,7 @@ export function EquityCurveChart({ data }: { data: JournalStats['equityCurve'] }
 
 export function PnlCalendarHeatmap({ data }: { data: JournalStats['pnlByDay'] }) {
   const dark = useIsDark();
-  const { locale, textStyle } = useChartLocale();
+  const { locale, textStyle, currency } = useChartLocale();
   const option = useMemo(() => {
     const values = data.map((d) => [d.date, d.pnl] as [string, number]);
     const end = data.at(-1)?.date ?? formatDayKey(now());
@@ -165,7 +179,7 @@ export function PnlCalendarHeatmap({ data }: { data: JournalStats['pnlByDay'] })
         textStyle,
         formatter: (p: { data?: [string, number] }) =>
           p.data
-            ? `${formatDate(p.data[0], DATE_PATTERNS[locale].long, locale)}: ${formatCurrency(p.data[1], locale)}`
+            ? `${formatDate(p.data[0], DATE_PATTERNS[locale].long, locale)}: ${formatCurrency(p.data[1], locale, currency)}`
             : '',
       },
       visualMap: {
@@ -175,7 +189,7 @@ export function PnlCalendarHeatmap({ data }: { data: JournalStats['pnlByDay'] })
         orient: 'horizontal',
         left: 'center',
         bottom: 0,
-        formatter: (value: number) => formatCurrency(value, locale),
+        formatter: (value: number) => formatCurrency(value, locale, currency),
         inRange: {
           color: ['#EF4444', dark ? '#27272a' : '#f4f4f5', '#22C55E'],
         },
@@ -208,7 +222,7 @@ export function PnlCalendarHeatmap({ data }: { data: JournalStats['pnlByDay'] })
         },
       ],
     };
-  }, [data, dark, locale, textStyle]);
+  }, [data, dark, locale, textStyle, currency]);
 
   return <ReactECharts option={option} style={{ height: 220 }} />;
 }

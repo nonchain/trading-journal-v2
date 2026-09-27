@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
+import { AccountsProvider } from '@/components/accounts/accounts-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -61,10 +62,10 @@ export function AppProviders({
   }
 
   const content = (
-    <>
+    <AccountsProvider>
       {children}
       <ToastHost />
-    </>
+    </AccountsProvider>
   );
 
   return (

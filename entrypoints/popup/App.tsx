@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AccountGate } from '@/components/accounts/account-onboarding';
+import { AccountSwitcher } from '@/components/accounts/account-switcher';
 import { TradeCard } from '@/components/trades/trade-card';
 import { NewTradeButton } from '@/components/trades/trade-form-dialog';
 import { Button } from '@/components/ui/button';
@@ -7,20 +9,31 @@ import { Icon } from '@/components/ui/icon';
 import { EmptyState } from '@/components/shared/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useJournal } from '@/hooks/use-journal';
+import { openDashboard } from '@/lib/navigation';
 
 export function PopupApp() {
+  return (
+    <div className="flex h-full flex-col overflow-y-auto bg-background p-3">
+      <AccountGate compact>
+        <PopupContent />
+      </AccountGate>
+    </div>
+  );
+}
+
+function PopupContent() {
   const { t } = useTranslation();
   const { trades, setups, emotions, loading, refresh } = useJournal();
   const [open, setOpen] = useState(false);
   const recent = trades.slice(0, 5);
 
   return (
-    <div className="flex min-h-[460px] flex-col bg-background p-3">
-      <div className="mb-3 flex items-center justify-between">
-        <div>
-          <p className="text-xs text-muted-foreground">{t('popup.title')}</p>
-          <h1 className="text-base font-semibold">{t('app.name')}</h1>
-        </div>
+    <>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <AccountSwitcher
+          className="-ms-2"
+          onManage={() => openDashboard('settings')}
+        />
         <NewTradeButton
           compact
           open={open}
@@ -77,6 +90,6 @@ export function PopupApp() {
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -1,17 +1,28 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AccountAvatar } from '@/components/accounts/account-avatar';
+import { AccountForm } from '@/components/accounts/account-form';
+import { useAccounts } from '@/components/accounts/accounts-provider';
 import { TradeForm } from '@/components/trades/trade-form';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Icon } from '@/components/ui/icon';
 import { toast } from '@/components/ui/toaster';
+import { defaultAccountFormValues } from '@/lib/accounts';
 import { journalRepo } from '@/lib/storage';
-import type { EmotionTag, Setup, Trade, TradeFormValues } from '@/lib/types';
+import type {
+  AccountFormValues,
+  EmotionTag,
+  Setup,
+  Trade,
+  TradeFormValues,
+} from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 export type TradeFormDialogProps = {
@@ -45,7 +56,20 @@ export function TradeFormDialog({
   contentClassName,
 }: TradeFormDialogProps) {
   const { t } = useTranslation();
+  const { activeAccount, loading: accountsLoading, refresh: refreshAccounts } =
+    useAccounts();
   const editing = trade ?? null;
+  const needsAccount = !accountsLoading && !activeAccount;
+
+  async function handleCreateAccount(values: AccountFormValues) {
+    try {
+      await journalRepo.createAccount(values);
+      toast.success(t('toast.accountCreated'));
+      await refreshAccounts();
+    } catch {
+      toast.error(t('toast.error'));
+    }
+  }
 
   async function handleSubmit(values: TradeFormValues) {
     try {
@@ -69,22 +93,49 @@ export function TradeFormDialog({
           contentClassName,
         )}
       >
-        <DialogHeader>
-          <DialogTitle>
-            {title ?? (editing ? t('trades.editTrade') : t('trades.newTrade'))}
-          </DialogTitle>
-        </DialogHeader>
-        <TradeForm
-          key={editing?.id ?? defaultSymbol ?? 'new'}
-          compact={compact}
-          setups={setups}
-          emotions={emotions}
-          initial={editing ?? undefined}
-          defaultSymbol={defaultSymbol}
-          onCancel={() => onOpenChange(false)}
-          onSubmit={handleSubmit}
-          onCaptureScreenshot={onCaptureScreenshot}
-        />
+        {needsAccount ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>{t('onboarding.title')}</DialogTitle>
+              <DialogDescription>{t('trades.needAccount')}</DialogDescription>
+            </DialogHeader>
+            <AccountForm
+              compact={compact}
+              defaultValues={defaultAccountFormValues(0)}
+              submitLabel={t('onboarding.submit')}
+              onCancel={() => onOpenChange(false)}
+              onSubmit={handleCreateAccount}
+            />
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>
+                {title ?? (editing ? t('trades.editTrade') : t('trades.newTrade'))}
+              </DialogTitle>
+              {activeAccount && (
+                <DialogDescription className="flex items-center gap-1.5">
+                  {t('trades.account')}:
+                  <AccountAvatar account={activeAccount} size="sm" className="size-5" />
+                  <span className="font-medium text-foreground">
+                    {activeAccount.name}
+                  </span>
+                </DialogDescription>
+              )}
+            </DialogHeader>
+            <TradeForm
+              key={`${activeAccount?.id}-${editing?.id ?? defaultSymbol ?? 'new'}`}
+              compact={compact}
+              setups={setups}
+              emotions={emotions}
+              initial={editing ?? undefined}
+              defaultSymbol={defaultSymbol}
+              onCancel={() => onOpenChange(false)}
+              onSubmit={handleSubmit}
+              onCaptureScreenshot={onCaptureScreenshot}
+            />
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

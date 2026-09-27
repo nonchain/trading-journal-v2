@@ -1,11 +1,14 @@
 import { storage } from 'wxt/utils/storage';
 import { now, toIsoString, toUnix } from './date';
 import {
+  accountSchema,
   emotionTagSchema,
   journalExportSchema,
   settingsSchema,
   setupSchema,
   tradeSchema,
+  type Account,
+  type AccountFormValues,
   type EmotionTag,
   type JournalExport,
   type Settings,
@@ -48,9 +51,25 @@ const settingsItem = storage.defineItem<Settings>('local:settings', {
   fallback: { locale: 'fa', theme: 'dark', currency: 'USD' },
 });
 
+const accountsItem = storage.defineItem<Account[]>('local:accounts', {
+  fallback: [],
+});
+
+function sortNewestFirst(trades: Trade[]) {
+  return [...trades].sort((a, b) => toUnix(b.createdAt) - toUnix(a.createdAt));
+}
+
+function pickActiveAccount(
+  accounts: Account[],
+  activeAccountId: string | undefined,
+): Account | null {
+  return accounts.find((a) => a.id === activeAccountId) ?? accounts[0] ?? null;
+}
+
+/** Fire-and-forget: a pending or failed broadcast must never block a storage write. */
 async function notifyChanged() {
   try {
-    await browser.runtime.sendMessage({ type: 'TRADES_CHANGED' });
+    browser.runtime.sendMessage({ type: 'TRADES_CHANGED' }).catch(() => {});
   } catch {
     // No listeners in some contexts — safe to ignore.
   }
@@ -106,7 +125,8 @@ function resolveExitPrice(
 
 function toTrade(
   values: TradeFormValues,
-  existing?: Trade,
+  existing: Trade | undefined,
+  account: Pick<Account, 'id' | 'currency'>,
 ): Trade {
   const stopLoss = optionalNumber(values.stopLoss);
   const takeProfit = optionalNumber(values.takeProfit);
@@ -126,7 +146,7 @@ function toTrade(
   );
 
   const leverage = optionalNumber(values.leverage);
-  const quoteRate = needsQuoteRate(values.symbol, values.market)
+  const quoteRate = needsQuoteRate(values.symbol, values.market, account.currency)
     ? optionalNumber(values.quoteRate)
     : undefined;
 
@@ -141,6 +161,7 @@ function toTrade(
     stopLoss,
     size: values.size,
     leverage,
+    accountCurrency: account.currency,
     quoteRate,
     riskAmount: stopLoss != null ? undefined : optionalNumber(values.riskAmount),
   });
@@ -155,6 +176,7 @@ function toTrade(
 
   return tradeSchema.parse({
     id: existing?.id ?? uid('trade'),
+    accountId: account.id,
     symbol: values.symbol.toUpperCase(),
     direction: values.direction,
     entryPrice: values.entryPrice,
@@ -209,11 +231,12 @@ export function tradeToFormValues(trade: Trade): TradeFormValues {
 }
 
 export const journalRepo = {
+  /** Trades of the active account, newest first. */
   async getAll(): Promise<Trade[]> {
+    const account = await this.getActiveAccount();
+    if (!account) return [];
     const trades = await tradesItem.getValue();
-    return [...trades].sort(
-      (a, b) => toUnix(b.createdAt) - toUnix(a.createdAt),
-    );
+    return sortNewestFirst(trades.filter((t) => t.accountId === account.id));
   },
 
   async getById(id: string): Promise<Trade | undefined> {
@@ -222,11 +245,13 @@ export const journalRepo = {
   },
 
   async create(values: TradeFormValues): Promise<Trade> {
-    const trade = toTrade({
-      ...values,
-      status: 'open',
-      exitPrice: undefined,
-    });
+    const account = await this.getActiveAccount();
+    if (!account) throw new Error('Create an account first');
+    const trade = toTrade(
+      { ...values, status: 'open', exitPrice: undefined },
+      undefined,
+      account,
+    );
     const trades = await tradesItem.getValue();
     await tradesItem.setValue([trade, ...trades]);
     await notifyChanged();
@@ -237,7 +262,12 @@ export const journalRepo = {
     const trades = await tradesItem.getValue();
     const existing = trades.find((t) => t.id === id);
     if (!existing) throw new Error('Trade not found');
-    const updated = toTrade(values, existing);
+    const accounts = await accountsItem.getValue();
+    const account =
+      accounts.find((a) => a.id === existing.accountId) ??
+      (await this.getActiveAccount());
+    if (!account) throw new Error('Account not found');
+    const updated = toTrade(values, existing, account);
     await tradesItem.setValue(
       trades.map((t) => (t.id === id ? updated : t)),
     );
@@ -287,7 +317,102 @@ export const journalRepo = {
   },
 
   async getStats(): Promise<JournalStats> {
-    return computeStats(await this.getAll());
+    const account = await this.getActiveAccount();
+    return computeStats(await this.getAll(), account?.initialBalance ?? 0);
+  },
+
+  async getAccounts(): Promise<Account[]> {
+    return accountsItem.getValue();
+  },
+
+  async getActiveAccount(): Promise<Account | null> {
+    const [accounts, settings] = await Promise.all([
+      accountsItem.getValue(),
+      this.getSettings(),
+    ]);
+    return pickActiveAccount(accounts, settings.activeAccountId);
+  },
+
+  async setActiveAccount(id: string): Promise<void> {
+    const accounts = await accountsItem.getValue();
+    if (!accounts.some((a) => a.id === id)) throw new Error('Account not found');
+    await this.updateSettings({ activeAccountId: id });
+    await notifyChanged();
+  },
+
+  /** Current balance per account: initial balance + realized P&L of closed trades. */
+  async getAccountBalances(): Promise<Record<string, number>> {
+    const [accounts, trades] = await Promise.all([
+      accountsItem.getValue(),
+      tradesItem.getValue(),
+    ]);
+    const balances: Record<string, number> = {};
+    for (const a of accounts) balances[a.id] = a.initialBalance;
+    for (const t of trades) {
+      const current = t.accountId ? balances[t.accountId] : undefined;
+      if (t.status === 'closed' && current != null) {
+        balances[t.accountId!] = current + (t.pnl ?? 0);
+      }
+    }
+    return balances;
+  },
+
+  async countTrades(accountId: string): Promise<number> {
+    const trades = await tradesItem.getValue();
+    return trades.filter((t) => t.accountId === accountId).length;
+  },
+
+  /** New accounts become active. The first one adopts trades logged before accounts existed. */
+  async createAccount(values: AccountFormValues): Promise<Account> {
+    const account = accountSchema.parse({
+      ...values,
+      icon: values.icon || undefined,
+      id: uid('acct'),
+      createdAt: toIsoString(now()),
+    });
+    const accounts = await accountsItem.getValue();
+    await accountsItem.setValue([...accounts, account]);
+
+    if (accounts.length === 0) {
+      const trades = await tradesItem.getValue();
+      if (trades.some((t) => !t.accountId)) {
+        await tradesItem.setValue(
+          trades.map((t) => (t.accountId ? t : { ...t, accountId: account.id })),
+        );
+      }
+    }
+
+    await this.updateSettings({ activeAccountId: account.id });
+    await notifyChanged();
+    return account;
+  },
+
+  async updateAccount(id: string, values: AccountFormValues): Promise<Account> {
+    const accounts = await accountsItem.getValue();
+    const existing = accounts.find((a) => a.id === id);
+    if (!existing) throw new Error('Account not found');
+    const updated = accountSchema.parse({
+      ...existing,
+      ...values,
+      icon: values.icon || undefined,
+    });
+    await accountsItem.setValue(accounts.map((a) => (a.id === id ? updated : a)));
+    await notifyChanged();
+    return updated;
+  },
+
+  /** Deletes the account together with all of its trades. */
+  async deleteAccount(id: string): Promise<void> {
+    const accounts = await accountsItem.getValue();
+    const remaining = accounts.filter((a) => a.id !== id);
+    const trades = await tradesItem.getValue();
+    await tradesItem.setValue(trades.filter((t) => t.accountId !== id));
+    await accountsItem.setValue(remaining);
+    const settings = await this.getSettings();
+    if (settings.activeAccountId === id || !remaining.length) {
+      await this.updateSettings({ activeAccountId: remaining[0]?.id });
+    }
+    await notifyChanged();
   },
 
   async getSetups(): Promise<Setup[]> {
@@ -358,6 +483,7 @@ export const journalRepo = {
     const payload = journalExportSchema.parse({
       version: 1,
       exportedAt: toIsoString(now()),
+      accounts: await accountsItem.getValue(),
       trades: await tradesItem.getValue(),
       setups: await setupsItem.getValue(),
       emotionTags: await emotionsItem.getValue(),
@@ -368,6 +494,7 @@ export const journalRepo = {
 
   async importAll(raw: unknown): Promise<void> {
     const data = journalExportSchema.parse(raw);
+    await accountsItem.setValue(data.accounts);
     await tradesItem.setValue(data.trades);
     await setupsItem.setValue(data.setups);
     await emotionsItem.setValue(data.emotionTags);
@@ -377,6 +504,8 @@ export const journalRepo = {
 
   async clearAll(): Promise<void> {
     await tradesItem.setValue([]);
+    await accountsItem.setValue([]);
+    await this.updateSettings({ activeAccountId: undefined });
     await setupsItem.setValue([
       { id: 'setup_breakout', name: 'Breakout', color: '#3B82F6' },
       { id: 'setup_reversal', name: 'Reversal', color: '#8B5CF6' },
@@ -397,5 +526,9 @@ export const journalRepo = {
 
   watchSettings(cb: (settings: Settings) => void) {
     return settingsItem.watch(cb);
+  },
+
+  watchAccounts(cb: (accounts: Account[]) => void) {
+    return accountsItem.watch(cb);
   },
 };

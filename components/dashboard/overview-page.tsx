@@ -8,6 +8,7 @@ import {
   PnlCalendarHeatmap,
 } from '@/components/charts/journal-charts';
 import { EmptyState } from '@/components/shared/empty-state';
+import { useAccounts } from '@/components/accounts/accounts-provider';
 import { useLocale } from '@/hooks/use-locale';
 import type { JournalStats } from '@/lib/types';
 
@@ -22,12 +23,13 @@ export function OverviewPage({
 }) {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const { activeAccount } = useAccounts();
 
   if (loading || !stats) {
     return (
       <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-24" />
           ))}
         </div>
@@ -54,7 +56,24 @@ export function OverviewPage({
         ? t('kpi.wins', { count: stats.currentStreak })
         : t('kpi.losses', { count: stats.currentStreak });
 
-  const kpis: Array<{ label: string; value: ReactNode }> = [
+  const kpis: Array<{ label: string; value: ReactNode; sub?: ReactNode }> = [
+    {
+      label: t('kpi.balance'),
+      value: (
+        <NumberValue value={stats.balance} variant="currency" locale={locale} />
+      ),
+      sub: (
+        <>
+          <NumberValue
+            value={stats.returnPct}
+            locale={locale}
+            suffix="%"
+            signed
+          />{' '}
+          {t('kpi.return')}
+        </>
+      ),
+    },
     {
       label: t('kpi.winRate'),
       value: (
@@ -81,7 +100,7 @@ export function OverviewPage({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {kpis.map((kpi) => (
           <Card key={kpi.label}>
             <CardHeader className="pb-2">
@@ -93,6 +112,9 @@ export function OverviewPage({
               <div className="text-2xl font-semibold tracking-tight">
                 {kpi.value}
               </div>
+              {kpi.sub && (
+                <p className="mt-1 text-xs text-muted-foreground">{kpi.sub}</p>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -104,7 +126,10 @@ export function OverviewPage({
             <CardTitle className="text-base">{t('overview.equityCurve')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <EquityCurveChart data={stats.equityCurve} />
+            <EquityCurveChart
+              data={stats.equityCurve}
+              color={activeAccount?.color}
+            />
           </CardContent>
         </Card>
         <Card>

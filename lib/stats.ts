@@ -62,7 +62,10 @@ function rBucket(r: number) {
   return '≥ 3R';
 }
 
-export function computeStats(trades: Trade[]): JournalStats {
+export function computeStats(
+  trades: Trade[],
+  initialBalance = 0,
+): JournalStats {
   const closed = trades
     .filter((t) => t.status === 'closed')
     .sort(
@@ -93,7 +96,7 @@ export function computeStats(trades: Trade[]): JournalStats {
     }
   }
 
-  let running = 0;
+  let running = initialBalance;
   const equityCurve = closed.map((t) => {
     running += t.pnl ?? 0;
     return {
@@ -173,6 +176,9 @@ export function computeStats(trades: Trade[]): JournalStats {
     closedTrades: closed.length,
     winRate,
     totalPnl,
+    initialBalance,
+    balance: initialBalance + totalPnl,
+    returnPct: initialBalance > 0 ? (totalPnl / initialBalance) * 100 : 0,
     avgR,
     currentStreak,
     streakType,

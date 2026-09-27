@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
-import { NumberValue } from '@/components/ui/number-value';
+import { NumberValue, useNumberCurrency } from '@/components/ui/number-value';
 import { Separator } from '@/components/ui/separator';
 import {
   Sheet,
@@ -28,10 +28,11 @@ export function TradeDetailSheet({
 }: TradeDetailSheetProps) {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const accountCurrency = useNumberCurrency();
   if (!trade) return null;
 
   const market = tradeMarket(trade);
-  const position = computePosition({ ...trade, market });
+  const position = computePosition({ ...trade, market, accountCurrency });
 
   const rows: Array<[string, ReactNode]> = [
     [t('trades.fields.symbol'), trade.symbol],

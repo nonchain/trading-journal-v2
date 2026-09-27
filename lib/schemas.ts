@@ -14,8 +14,38 @@ export const closeReasonSchema = z.enum(['stopLoss', 'takeProfit']);
 export const themeSchema = z.enum(['light', 'dark', 'system']);
 export const localeSchema = z.enum(['en', 'fa']);
 
+const hexColor = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
+const currencyCode = z.string().regex(/^[A-Z]{3,5}$/);
+
+export const accountSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().trim().min(1).max(40),
+  initialBalance: z.number().finite().positive(),
+  currency: currencyCode,
+  icon: z.string().optional(),
+  color: hexColor,
+  createdAt: z.string().datetime(),
+});
+
+export const accountFormSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, 'validation.nameRequired')
+    .max(40, 'validation.nameTooLong'),
+  initialBalance: z
+    .number('validation.numberRequired')
+    .finite()
+    .positive('validation.balancePositive'),
+  currency: currencyCode,
+  icon: z.string().optional(),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'validation.invalidColor'),
+});
+
 export const tradeSchema = z.object({
   id: z.string().min(1),
+  /** Missing only on trades logged before accounts existed. */
+  accountId: z.string().optional(),
   symbol: z.string().trim().min(1).max(32),
   direction: directionSchema,
   entryPrice: z.number().finite().positive(),
@@ -45,8 +75,33 @@ export const tradeSchema = z.object({
 
 const optionalPositive = z.number().finite().positive().optional();
 
-/** Messages are i18n keys, translated by `FormMessage`. */
-export const tradeFormSchema = z
+/**
+ * Messages are i18n keys, translated by `FormMessage`.
+ * The account currency decides whether a quote → account conversion rate is required.
+ */
+export function createTradeFormSchema(accountCurrency: string) {
+  return tradeFormObjectSchema.superRefine((values, ctx) => {
+    if (values.leverage > MAX_LEVERAGE[values.market]) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['leverage'],
+        message: `validation.maxLeverage.${values.market}`,
+      });
+    }
+    if (
+      needsQuoteRate(values.symbol, values.market, accountCurrency) &&
+      values.quoteRate == null
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['quoteRate'],
+        message: 'validation.quoteRateRequired',
+      });
+    }
+  });
+}
+
+const tradeFormObjectSchema = z
   .object({
     market: marketSchema,
     symbol: z.string().trim().min(1, 'validation.symbolRequired').max(32),
@@ -77,23 +132,9 @@ export const tradeFormSchema = z
     screenshotDataUrl: z.string().optional(),
     /** Trade datetime (ISO). Defaults to now on create. */
     tradedAt: z.string().datetime().optional(),
-  })
-  .superRefine((values, ctx) => {
-    if (values.leverage > MAX_LEVERAGE[values.market]) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['leverage'],
-        message: `validation.maxLeverage.${values.market}`,
-      });
-    }
-    if (needsQuoteRate(values.symbol, values.market) && values.quoteRate == null) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['quoteRate'],
-        message: 'validation.quoteRateRequired',
-      });
-    }
   });
+
+export const tradeFormSchema = createTradeFormSchema('USD');
 
 export const setupSchema = z.object({
   id: z.string().min(1),
@@ -115,18 +156,23 @@ export const tagFormSchema = z.object({
 export const settingsSchema = z.object({
   locale: localeSchema.default('fa'),
   theme: themeSchema.default('dark'),
+  /** Legacy global currency — each account now carries its own. */
   currency: z.string().default('USD'),
+  activeAccountId: z.string().optional(),
 });
 
 export const journalExportSchema = z.object({
   version: z.literal(1),
   exportedAt: z.string().datetime(),
+  accounts: z.array(accountSchema).default([]),
   trades: z.array(tradeSchema),
   setups: z.array(setupSchema),
   emotionTags: z.array(emotionTagSchema),
   settings: settingsSchema,
 });
 
+export type Account = z.infer<typeof accountSchema>;
+export type AccountFormValues = z.infer<typeof accountFormSchema>;
 export type Trade = z.infer<typeof tradeSchema>;
 export type TradeFormValues = z.infer<typeof tradeFormSchema>;
 export type Setup = z.infer<typeof setupSchema>;

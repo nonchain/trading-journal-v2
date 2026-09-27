@@ -115,30 +115,41 @@ export function pipSize(symbol: string): number {
   return 0.0001;
 }
 
+/** USD stablecoins are treated as USD for conversion purposes. */
+export function sameCurrency(a: string, b: string): boolean {
+  const norm = (c: string) => (USD_LIKE.has(c.toUpperCase()) ? 'USD' : c.toUpperCase());
+  return norm(a) === norm(b);
+}
+
 /**
- * True when P&L is denominated in a non-USD quote currency that can't be
- * derived from the trade's own prices (e.g. EURGBP), so a GBP→USD rate is needed.
+ * True when P&L is denominated in a quote currency that differs from the account
+ * currency and can't be derived from the trade's own prices (e.g. EURGBP on a USD account).
  */
-export function needsQuoteRate(symbol: string, market: Market | undefined): boolean {
+export function needsQuoteRate(
+  symbol: string,
+  market: Market | undefined,
+  accountCurrency = 'USD',
+): boolean {
   if (!market) return false;
   const parsed = parseSymbol(symbol, market);
   if (!parsed) return false;
-  if (USD_LIKE.has(parsed.quote)) return false;
-  if (market === 'forex' && parsed.base === 'USD') return false;
+  if (sameCurrency(parsed.quote, accountCurrency)) return false;
+  if (market === 'forex' && sameCurrency(parsed.base, accountCurrency)) return false;
   return true;
 }
 
-/** Converts an amount in quote currency at `price` into USD. */
-function quoteToUsdFactor(
+/** Converts an amount in quote currency at `price` into the account currency. */
+function quoteToAccountFactor(
   symbol: string,
   market: Market | undefined,
   price: number,
+  accountCurrency: string,
   quoteRate: number | undefined,
 ): number {
   if (!market) return 1;
   const parsed = parseSymbol(symbol, market);
-  if (!parsed || USD_LIKE.has(parsed.quote)) return 1;
-  if (market === 'forex' && parsed.base === 'USD') return 1 / price;
+  if (!parsed || sameCurrency(parsed.quote, accountCurrency)) return 1;
+  if (market === 'forex' && sameCurrency(parsed.base, accountCurrency)) return 1 / price;
   return quoteRate != null && quoteRate > 0 ? quoteRate : 1;
 }
 
@@ -153,6 +164,9 @@ export interface PositionInput {
   /** Lots — multiplied by the contract size to get base units. */
   size: number;
   leverage?: number;
+  /** Currency all money amounts are expressed in. Defaults to USD. */
+  accountCurrency?: string;
+  /** Quote currency → account currency rate, when it can't be derived. */
   quoteRate?: number;
   /** Only used when there's no stop loss to derive risk from. */
   riskAmount?: number;
@@ -183,28 +197,29 @@ export function computePosition(input: PositionInput): PositionMetrics {
     input.leverage != null && input.leverage >= MIN_LEVERAGE ? input.leverage : undefined;
   const cs = contractSize(symbol, market);
   const units = size * cs;
-  const usd = (amount: number, price: number) =>
-    amount * quoteToUsdFactor(symbol, market, price, quoteRate);
+  const accountCurrency = input.accountCurrency ?? 'USD';
+  const toAccount = (amount: number, price: number) =>
+    amount * quoteToAccountFactor(symbol, market, price, accountCurrency, quoteRate);
   const move = (to: number) => (direction === 'long' ? to - entryPrice : entryPrice - to);
 
-  const notional = usd(units * entryPrice, entryPrice);
+  const notional = toAccount(units * entryPrice, entryPrice);
   const margin = leverage ? notional / leverage : undefined;
 
-  const pnl = exitPrice != null ? usd(move(exitPrice) * units, exitPrice) : undefined;
+  const pnl = exitPrice != null ? toAccount(move(exitPrice) * units, exitPrice) : undefined;
   const riskAmount =
     stopLoss != null
-      ? usd(Math.abs(entryPrice - stopLoss) * units, stopLoss)
+      ? toAccount(Math.abs(entryPrice - stopLoss) * units, stopLoss)
       : input.riskAmount;
   const rewardAmount =
     takeProfit != null
-      ? usd(Math.abs(takeProfit - entryPrice) * units, takeProfit)
+      ? toAccount(Math.abs(takeProfit - entryPrice) * units, takeProfit)
       : undefined;
 
   let pip: number | undefined;
   let pipValue: number | undefined;
   if (market === 'forex') {
     pip = pipSize(symbol);
-    pipValue = usd(pip * units, entryPrice);
+    pipValue = toAccount(pip * units, entryPrice);
   }
 
   let liquidationPrice: number | undefined;

@@ -28,12 +28,17 @@ export function useJournal() {
     const unwatch = journalRepo.watchTrades(() => {
       refresh();
     });
+    // Switching or editing accounts changes which trades are visible and the starting balance.
+    const unwatchSettings = journalRepo.watchSettings(() => refresh());
+    const unwatchAccounts = journalRepo.watchAccounts(() => refresh());
     const onMessage = (msg: { type?: string }) => {
       if (msg?.type === 'TRADES_CHANGED') refresh();
     };
     browser.runtime.onMessage.addListener(onMessage);
     return () => {
       unwatch();
+      unwatchSettings();
+      unwatchAccounts();
       browser.runtime.onMessage.removeListener(onMessage);
     };
   }, [refresh]);

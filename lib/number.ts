@@ -30,7 +30,8 @@ function clampDecimals(decimals: number | undefined): number {
 
 function normalizeCurrency(currency: string | undefined): string {
   const code = (currency ?? DEFAULT_CURRENCY).trim().toUpperCase();
-  if (!/^[A-Z]{3}$/.test(code)) return DEFAULT_CURRENCY;
+  // 4–5 letter codes (USDT, USDC) aren't ISO; Intl rejects them and they fall back to a code prefix.
+  if (!/^[A-Z]{3,5}$/.test(code)) return DEFAULT_CURRENCY;
   return code;
 }
 

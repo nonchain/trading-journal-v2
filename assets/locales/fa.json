@@ -48,7 +48,9 @@
     "streak": "رشته پی‌درپی",
     "wins": "{{count}} برد",
     "losses": "{{count}} باخت",
-    "none": "بدون رشته"
+    "none": "بدون رشته",
+    "balance": "موجودی",
+    "return": "بازده"
   },
   "overview": {
     "title": "نمای کلی",
@@ -61,6 +63,8 @@
     "title": "معاملات",
     "newTrade": "معامله جدید",
     "logTrade": "ثبت معامله",
+    "account": "حساب",
+    "needAccount": "معاملات به تفکیک حساب ثبت می‌شوند. برای ادامه یک حساب بسازید.",
     "editTrade": "ویرایش معامله",
     "detail": "جزئیات معامله",
     "recent": "معاملات اخیر",
@@ -102,7 +106,7 @@
       "market": "بازار",
       "lotSize": "حجم (لات)",
       "leverage": "اهرم",
-      "quoteRate": "نرخ {{quote}} به دلار",
+      "quoteRate": "نرخ {{quote}} به {{currency}}",
       "margin": "مارجین"
     },
     "market": {
@@ -114,7 +118,7 @@
       "cryptoLot": "مقدار بر حسب {{base}}",
       "baseFallback": "واحد",
       "leverageRange": "از ۱ تا {{max}}",
-      "quoteRate": "ارزش دلاری هر {{quote}}؛ برای تبدیل سود و زیان"
+      "quoteRate": "ارزش هر {{quote}} بر حسب {{currency}}؛ برای تبدیل سود و زیان"
     },
     "summary": {
       "units": "واحد پایه",
@@ -142,7 +146,39 @@
     },
     "quoteRateRequired": "برای این جفت‌ارز نرخ تبدیل به دلار لازم است",
     "nameRequired": "نام الزامی است",
-    "invalidColor": "رنگ نامعتبر است"
+    "invalidColor": "رنگ نامعتبر است",
+    "nameTooLong": "نام بیش از حد طولانی است",
+    "balancePositive": "موجودی باید بیشتر از صفر باشد"
+  },
+  "accounts": {
+    "title": "حساب‌ها",
+    "switch": "تغییر حساب",
+    "new": "حساب جدید",
+    "create": "ساخت حساب",
+    "manage": "مدیریت حساب‌ها",
+    "edit": "ویرایش حساب",
+    "delete": "حذف حساب",
+    "active": "فعال",
+    "deleteConfirmTitle": "«{{name}}» حذف شود؟",
+    "deleteConfirmDescription": "این حساب و {{count}} معامله آن برای همیشه حذف می‌شوند. قابل بازگشت نیست.",
+    "fields": {
+      "name": "نام حساب",
+      "namePlaceholder": "مثلاً چالش پراپ",
+      "initialBalance": "موجودی اولیه",
+      "currency": "واحد پول",
+      "icon": "آیکون",
+      "iconNone": "بدون آیکون",
+      "color": "رنگ",
+      "initial": "اولیه"
+    },
+    "hints": {
+      "currencyChange": "تغییر واحد پول، سود و زیان معاملات قبلی را تبدیل نمی‌کند."
+    }
+  },
+  "onboarding": {
+    "title": "اولین حساب خود را بسازید",
+    "description": "برای شروع ژورنال یک حساب معاملاتی تعریف کنید. هر زمان می‌توانید حساب‌های بیشتری بسازید و بین آن‌ها جابه‌جا شوید.",
+    "submit": "ساخت حساب و شروع"
   },
   "stats": {
     "title": "آمار",
@@ -177,7 +213,7 @@
     "import": "ورود داده",
     "clear": "پاک کردن همه داده‌ها",
     "clearConfirmTitle": "ژورنال پاک شود؟",
-    "clearConfirmDescription": "همه معاملات برای همیشه حذف می‌شوند. برچسب‌ها به پیش‌فرض برمی‌گردند. قابل بازگشت نیست.",
+    "clearConfirmDescription": "همه حساب‌ها و معاملات برای همیشه حذف می‌شوند. برچسب‌ها به پیش‌فرض برمی‌گردند. قابل بازگشت نیست.",
     "exportSuccess": "خروجی دانلود شد",
     "importSuccess": "داده وارد شد",
     "clearSuccess": "ژورنال پاک شد",
@@ -191,7 +227,10 @@
     "closedAtTakeProfit": "در حد سود بسته شد",
     "tagSaved": "برچسب ذخیره شد",
     "tagDeleted": "برچسب حذف شد",
-    "error": "مشکلی پیش آمد"
+    "error": "مشکلی پیش آمد",
+    "accountCreated": "حساب ساخته شد",
+    "accountUpdated": "حساب به‌روز شد",
+    "accountDeleted": "حساب حذف شد"
   },
   "popup": {
     "title": "دسترسی سریع",

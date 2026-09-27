@@ -1,4 +1,6 @@
 export type {
+  Account,
+  AccountFormValues,
   Trade,
   TradeFormValues,
   Setup,
@@ -17,6 +19,10 @@ export interface JournalStats {
   closedTrades: number;
   winRate: number;
   totalPnl: number;
+  initialBalance: number;
+  /** Initial balance + realized P&L. */
+  balance: number;
+  returnPct: number;
   avgR: number;
   currentStreak: number;
   streakType: 'win' | 'loss' | 'none';

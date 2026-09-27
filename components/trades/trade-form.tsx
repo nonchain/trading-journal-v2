@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { useForm, useWatch, type Control } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { NumberValue } from '@/components/ui/number-value';
+import { NumberValue, useNumberCurrency } from '@/components/ui/number-value';
 import {
   Select,
   SelectContent,
@@ -42,7 +42,7 @@ import {
 } from '@/lib/markets';
 import { formatNumberValue } from '@/lib/number';
 import {
-  tradeFormSchema,
+  createTradeFormSchema,
   type Market,
   type TradeFormValues,
 } from '@/lib/schemas';
@@ -90,6 +90,10 @@ function tradeToForm(trade: Trade): TradeFormValues {
   };
 }
 
+function useAccountCurrency() {
+  return useNumberCurrency() ?? 'USD';
+}
+
 function toOptionalNumber(value: string) {
   return value === '' ? undefined : Number(value);
 }
@@ -123,8 +127,13 @@ export function TradeForm({
 }: TradeFormProps) {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const accountCurrency = useAccountCurrency();
+  const schema = useMemo(
+    () => createTradeFormSchema(accountCurrency),
+    [accountCurrency],
+  );
   const form = useForm<TradeFormValues>({
-    resolver: zodResolver(tradeFormSchema) as never,
+    resolver: zodResolver(schema) as never,
     defaultValues: initial
       ? tradeToForm(initial)
       : {
@@ -157,7 +166,7 @@ export function TradeForm({
         onSubmit={form.handleSubmit(async (values) => {
           await onSubmit({
             ...values,
-            quoteRate: needsQuoteRate(values.symbol, values.market)
+            quoteRate: needsQuoteRate(values.symbol, values.market, accountCurrency)
               ? values.quoteRate
               : undefined,
             emotionTag: values.emotionTag || undefined,
@@ -420,7 +429,8 @@ function PositionSizingFields({
     decimals: 0,
     locale,
   }).text;
-  const showQuoteRate = needsQuoteRate(symbol, market);
+  const accountCurrency = useAccountCurrency();
+  const showQuoteRate = needsQuoteRate(symbol, market, accountCurrency);
   const maxLeverage = formatNumberValue(MAX_LEVERAGE[market], {
     decimals: 0,
     locale,
@@ -497,7 +507,10 @@ function PositionSizingFields({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {t('trades.fields.quoteRate', { quote: parsed.quote })}
+                {t('trades.fields.quoteRate', {
+                  quote: parsed.quote,
+                  currency: accountCurrency,
+                })}
               </FormLabel>
               <FormControl>
                 <Input
@@ -512,7 +525,10 @@ function PositionSizingFields({
                 />
               </FormControl>
               <FormDescription>
-                {t('trades.hints.quoteRate', { quote: parsed.quote })}
+                {t('trades.hints.quoteRate', {
+                  quote: parsed.quote,
+                  currency: accountCurrency,
+                })}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -534,6 +550,7 @@ function PositionSummary({
 }) {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const accountCurrency = useAccountCurrency();
   const [symbol, direction, entryPrice, stopLoss, takeProfit, size, leverage, quoteRate] =
     useWatch({
       control,
@@ -560,6 +577,7 @@ function PositionSummary({
     takeProfit,
     size,
     leverage,
+    accountCurrency,
     quoteRate,
   });
   const base = parseSymbol(symbol ?? '', market)?.base;

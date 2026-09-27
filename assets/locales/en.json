@@ -48,7 +48,9 @@
     "streak": "Streak",
     "wins": "{{count}} wins",
     "losses": "{{count}} losses",
-    "none": "No streak"
+    "none": "No streak",
+    "balance": "Balance",
+    "return": "return"
   },
   "overview": {
     "title": "Overview",
@@ -61,6 +63,8 @@
     "title": "Trades",
     "newTrade": "New Trade",
     "logTrade": "Log Trade",
+    "account": "Account",
+    "needAccount": "Trades are logged per account. Create one to continue.",
     "editTrade": "Edit Trade",
     "detail": "Trade detail",
     "recent": "Recent trades",
@@ -102,7 +106,7 @@
       "market": "Market",
       "lotSize": "Lot size",
       "leverage": "Leverage",
-      "quoteRate": "{{quote}} → USD rate",
+      "quoteRate": "{{quote}} → {{currency}} rate",
       "margin": "Margin"
     },
     "market": {
@@ -114,7 +118,7 @@
       "cryptoLot": "Quantity in {{base}}",
       "baseFallback": "units",
       "leverageRange": "From 1 to {{max}}",
-      "quoteRate": "USD value of 1 {{quote}}, used to convert P&L"
+      "quoteRate": "{{currency}} value of 1 {{quote}}, used to convert P&L"
     },
     "summary": {
       "units": "Units",
@@ -142,7 +146,39 @@
     },
     "quoteRateRequired": "A USD conversion rate is required for this pair",
     "nameRequired": "Name is required",
-    "invalidColor": "Invalid color"
+    "invalidColor": "Invalid color",
+    "nameTooLong": "Name is too long",
+    "balancePositive": "Balance must be greater than zero"
+  },
+  "accounts": {
+    "title": "Accounts",
+    "switch": "Switch account",
+    "new": "New account",
+    "create": "Create account",
+    "manage": "Manage accounts",
+    "edit": "Edit account",
+    "delete": "Delete account",
+    "active": "Active",
+    "deleteConfirmTitle": "Delete “{{name}}”?",
+    "deleteConfirmDescription": "This account and its {{count}} trades will be permanently deleted. This cannot be undone.",
+    "fields": {
+      "name": "Account name",
+      "namePlaceholder": "e.g. Prop firm challenge",
+      "initialBalance": "Initial balance",
+      "currency": "Currency",
+      "icon": "Icon",
+      "iconNone": "No icon",
+      "color": "Color",
+      "initial": "Initial"
+    },
+    "hints": {
+      "currencyChange": "Changing currency doesn't convert the P&L of existing trades."
+    }
+  },
+  "onboarding": {
+    "title": "Create your first account",
+    "description": "Set up a trading account to start journaling. You can add more accounts and switch between them anytime.",
+    "submit": "Create account & start"
   },
   "stats": {
     "title": "Statistics",
@@ -177,7 +213,7 @@
     "import": "Import data",
     "clear": "Clear all data",
     "clearConfirmTitle": "Clear journal?",
-    "clearConfirmDescription": "This permanently deletes all trades. Tags reset to defaults. This cannot be undone.",
+    "clearConfirmDescription": "This permanently deletes all accounts and trades. Tags reset to defaults. This cannot be undone.",
     "exportSuccess": "Export downloaded",
     "importSuccess": "Data imported",
     "clearSuccess": "Journal cleared",
@@ -191,7 +227,10 @@
     "closedAtTakeProfit": "Closed at take profit",
     "tagSaved": "Tag saved",
     "tagDeleted": "Tag deleted",
-    "error": "Something went wrong"
+    "error": "Something went wrong",
+    "accountCreated": "Account created",
+    "accountUpdated": "Account updated",
+    "accountDeleted": "Account deleted"
   },
   "popup": {
     "title": "Quick Access",
