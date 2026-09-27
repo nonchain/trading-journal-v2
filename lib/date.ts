@@ -66,12 +66,36 @@ export function toDateObject(
       locale: calLocale,
     });
   }
+  // Strings are parsed in the target calendar, so a day key like "2026-09-27"
+  // would become Persian year 2026 — always read stored values as Gregorian first.
+  const date =
+    typeof value === 'string'
+      ? new DateObject({ date: value, calendar: gregorian }).toDate()
+      : value;
   return new DateObject({
-    date: value,
+    date,
     calendar,
     locale: calLocale,
   });
 }
+
+export const DATE_PATTERNS: Record<
+  AppLocale,
+  { date: string; dateTime: string; short: string; long: string }
+> = {
+  fa: {
+    date: 'YYYY/MM/DD',
+    dateTime: 'YYYY/MM/DD HH:mm',
+    short: 'D MMMM',
+    long: 'D MMMM YYYY',
+  },
+  en: {
+    date: 'YYYY-MM-DD',
+    dateTime: 'MMM D, YYYY HH:mm',
+    short: 'MMM D',
+    long: 'MMM D, YYYY',
+  },
+};
 
 /** Parse an ISO / storage timestamp into a DateObject (display calendar optional). */
 export function parseDate(
@@ -114,11 +138,7 @@ export function formatDateTime(
   value: string | number | Date | DateObjectInstance,
   locale: AppLocale = 'en',
 ): string {
-  return formatDate(
-    value,
-    locale === 'fa' ? 'YYYY/MM/DD HH:mm' : 'MMM D, YYYY HH:mm',
-    locale,
-  );
+  return formatDate(value, DATE_PATTERNS[locale].dateTime, locale);
 }
 
 export function formatDayKey(

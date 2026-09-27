@@ -13,7 +13,7 @@ import {
 } from '@/components/trades/trade-form-dialog';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
-import type { Locale } from '@/lib/schemas';
+import { useLocale } from '@/hooks/use-locale';
 import { journalRepo } from '@/lib/storage';
 import type { EmotionTag, Setup, Trade } from '@/lib/types';
 
@@ -28,8 +28,8 @@ export function TradesPage({
   emotions: EmotionTag[];
   onChanged: () => void;
 }) {
-  const { t, i18n } = useTranslation();
-  const locale = (i18n.language === 'fa' ? 'fa' : 'en') as Locale;
+  const { t } = useTranslation();
+  const { locale } = useLocale();
   const [selected, setSelected] = useState<Trade | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);

@@ -1,16 +1,16 @@
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import DatePickerModule from 'react-multi-date-picker';
 import TimePickerModule from 'react-multi-date-picker/plugins/time_picker';
 import type { DatePickerProps, Value } from 'react-multi-date-picker';
+import { useLocale } from '@/hooks/use-locale';
 import {
-  DateObject,
+  DATE_PATTERNS,
   getCalendarConfig,
   isDateObject,
+  toDateObject,
   toIsoString,
   type DateObjectInstance,
 } from '@/lib/date';
-import type { Locale as AppLocale } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
 import 'react-multi-date-picker/styles/colors/teal.css';
 
@@ -71,8 +71,7 @@ export function AppDatePicker({
   id,
   ...rest
 }: Props) {
-  const { i18n } = useTranslation();
-  const appLocale = (i18n.language === 'fa' ? 'fa' : 'en') as AppLocale;
+  const { locale: appLocale } = useLocale();
   const { calendar, locale } = useMemo(
     () => getCalendarConfig(appLocale),
     [appLocale],
@@ -81,15 +80,11 @@ export function AppDatePicker({
   const pickerValue = useMemo(() => {
     if (!value) return undefined;
     try {
-      return new DateObject({
-        date: value,
-        calendar,
-        locale,
-      });
+      return toDateObject(value, appLocale);
     } catch {
       return undefined;
     }
-  }, [value, calendar, locale]);
+  }, [value, appLocale]);
 
   return (
     <DatePicker
@@ -105,12 +100,8 @@ export function AppDatePicker({
       locale={locale}
       format={
         withTime
-          ? appLocale === 'fa'
-            ? 'YYYY/MM/DD HH:mm'
-            : 'YYYY-MM-DD HH:mm'
-          : appLocale === 'fa'
-            ? 'YYYY/MM/DD'
-            : 'YYYY-MM-DD'
+          ? `${DATE_PATTERNS[appLocale].date} HH:mm`
+          : DATE_PATTERNS[appLocale].date
       }
       disabled={disabled}
       // Do NOT use portal inside Radix Dialog — body gets pointer-events:none

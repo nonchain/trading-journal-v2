@@ -1,26 +1,130 @@
 import ReactECharts from 'echarts-for-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatDayKey, monthsAgoDayKey, now } from '@/lib/date';
+import { useLocale } from '@/hooks/use-locale';
+import {
+  DATE_PATTERNS,
+  formatDate,
+  formatDayKey,
+  monthsAgoDayKey,
+  now,
+} from '@/lib/date';
+import { APP_FONT_STACK } from '@/lib/fonts';
+import { formatNumberValue } from '@/lib/number';
+import type { Locale } from '@/lib/schemas';
 import type { JournalStats } from '@/lib/types';
+
+/** The heatmap grid is Gregorian, so its month labels stay Gregorian (Persian script in fa). */
+const CALENDAR_NAMES: Record<Locale, { firstDay: number; days: string[]; months: string[] }> = {
+  fa: {
+    firstDay: 6,
+    days: ['ی', 'د', 'س', 'چ', 'پ', 'ج', 'ش'],
+    months: [
+      'ژانویه',
+      'فوریه',
+      'مارس',
+      'آوریل',
+      'مه',
+      'ژوئن',
+      'ژوئیه',
+      'اوت',
+      'سپتامبر',
+      'اکتبر',
+      'نوامبر',
+      'دسامبر',
+    ],
+  },
+  en: {
+    firstDay: 1,
+    days: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+    months: [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ],
+  },
+};
 
 function useIsDark() {
   if (typeof document === 'undefined') return true;
   return document.documentElement.classList.contains('dark');
 }
 
+/** ECharts renders to canvas, so locale-specific font and formatting must be passed explicitly. */
+function useChartLocale() {
+  const { locale } = useLocale();
+  const [fontsVersion, setFontsVersion] = useState(0);
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || !('fonts' in document)) return;
+    let alive = true;
+    const bump = () => {
+      if (alive) setFontsVersion((v) => v + 1);
+    };
+    document.fonts.ready.then(bump);
+    document.fonts.addEventListener('loadingdone', bump);
+    return () => {
+      alive = false;
+      document.fonts.removeEventListener('loadingdone', bump);
+    };
+  }, []);
+
+  // Recreated after web fonts finish loading so canvas text is redrawn with them.
+  const textStyle = useMemo(
+    () => ({ fontFamily: APP_FONT_STACK[locale] }),
+    [locale, fontsVersion],
+  );
+
+  return { locale, textStyle };
+}
+
+function formatCurrency(value: unknown, locale: Locale) {
+  return formatNumberValue(value, { variant: 'currency', locale }).text;
+}
+
 export function EquityCurveChart({ data }: { data: JournalStats['equityCurve'] }) {
   const { t } = useTranslation();
   const dark = useIsDark();
+  const { locale, textStyle } = useChartLocale();
   const option = useMemo(
     () => ({
       backgroundColor: 'transparent',
+      textStyle,
       grid: { left: 40, right: 16, top: 24, bottom: 28 },
-      tooltip: { trigger: 'axis' },
+      tooltip: {
+        trigger: 'axis',
+        textStyle,
+        formatter: (
+          params: Array<{
+            axisValue: string;
+            marker: string;
+            seriesName: string;
+            value: number;
+          }>,
+        ) => {
+          const first = params[0];
+          if (!first) return '';
+          const date = formatDate(first.axisValue, DATE_PATTERNS[locale].long, locale);
+          return `${date}<br/>${first.marker}${first.seriesName}: ${formatCurrency(first.value, locale)}`;
+        },
+      },
       xAxis: {
         type: 'category',
         data: data.map((d) => d.date),
-        axisLabel: { color: dark ? '#a1a1aa' : '#71717a' },
+        axisLabel: {
+          color: dark ? '#a1a1aa' : '#71717a',
+          formatter: (value: string) =>
+            formatDate(value, DATE_PATTERNS[locale].short, locale),
+        },
       },
       yAxis: {
         type: 'value',
@@ -40,7 +144,7 @@ export function EquityCurveChart({ data }: { data: JournalStats['equityCurve'] }
         },
       ],
     }),
-    [data, dark, t],
+    [data, dark, t, locale, textStyle],
   );
 
   return <ReactECharts option={option} style={{ height: 280 }} />;
@@ -48,15 +152,21 @@ export function EquityCurveChart({ data }: { data: JournalStats['equityCurve'] }
 
 export function PnlCalendarHeatmap({ data }: { data: JournalStats['pnlByDay'] }) {
   const dark = useIsDark();
+  const { locale, textStyle } = useChartLocale();
   const option = useMemo(() => {
     const values = data.map((d) => [d.date, d.pnl] as [string, number]);
     const end = data.at(-1)?.date ?? formatDayKey(now());
     const start = monthsAgoDayKey(4, now());
+    const names = CALENDAR_NAMES[locale];
     return {
       backgroundColor: 'transparent',
+      textStyle,
       tooltip: {
+        textStyle,
         formatter: (p: { data?: [string, number] }) =>
-          p.data ? `${p.data[0]}: ${p.data[1].toFixed(2)}` : '',
+          p.data
+            ? `${formatDate(p.data[0], DATE_PATTERNS[locale].long, locale)}: ${formatCurrency(p.data[1], locale)}`
+            : '',
       },
       visualMap: {
         min: Math.min(0, ...data.map((d) => d.pnl), -1),
@@ -65,10 +175,11 @@ export function PnlCalendarHeatmap({ data }: { data: JournalStats['pnlByDay'] })
         orient: 'horizontal',
         left: 'center',
         bottom: 0,
+        formatter: (value: number) => formatCurrency(value, locale),
         inRange: {
           color: ['#EF4444', dark ? '#27272a' : '#f4f4f5', '#22C55E'],
         },
-        textStyle: { color: dark ? '#a1a1aa' : '#71717a' },
+        textStyle: { ...textStyle, color: dark ? '#a1a1aa' : '#71717a' },
       },
       calendar: {
         top: 24,
@@ -79,8 +190,15 @@ export function PnlCalendarHeatmap({ data }: { data: JournalStats['pnlByDay'] })
         range: [start, end],
         itemStyle: { borderWidth: 2, borderColor: dark ? '#18181b' : '#fff' },
         yearLabel: { show: false },
-        dayLabel: { color: dark ? '#a1a1aa' : '#71717a' },
-        monthLabel: { color: dark ? '#a1a1aa' : '#71717a' },
+        dayLabel: {
+          color: dark ? '#a1a1aa' : '#71717a',
+          firstDay: names.firstDay,
+          nameMap: names.days,
+        },
+        monthLabel: {
+          color: dark ? '#a1a1aa' : '#71717a',
+          nameMap: names.months,
+        },
       },
       series: [
         {
@@ -90,7 +208,7 @@ export function PnlCalendarHeatmap({ data }: { data: JournalStats['pnlByDay'] })
         },
       ],
     };
-  }, [data, dark]);
+  }, [data, dark, locale, textStyle]);
 
   return <ReactECharts option={option} style={{ height: 220 }} />;
 }
@@ -105,11 +223,13 @@ export function BarChart({
   color?: string;
 }) {
   const dark = useIsDark();
+  const { textStyle } = useChartLocale();
   const option = useMemo(
     () => ({
       backgroundColor: 'transparent',
+      textStyle,
       grid: { left: 48, right: 16, top: 24, bottom: 40 },
-      tooltip: { trigger: 'axis' },
+      tooltip: { trigger: 'axis', textStyle },
       xAxis: {
         type: 'category',
         data: categories,
@@ -128,7 +248,7 @@ export function BarChart({
         },
       ],
     }),
-    [categories, values, color, dark],
+    [categories, values, color, dark, textStyle],
   );
   return <ReactECharts option={option} style={{ height: 280 }} />;
 }

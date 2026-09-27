@@ -78,7 +78,7 @@ function ContentUiInner() {
 
 export function ContentUi() {
   return (
-    <AppProviders compact>
+    <AppProviders compact scoped>
       <ContentUiInner />
     </AppProviders>
   );

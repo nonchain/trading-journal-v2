@@ -10,8 +10,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { useLocale } from '@/hooks/use-locale';
 import { formatDateTime } from '@/lib/date';
-import type { Locale } from '@/lib/schemas';
 import type { Trade } from '@/lib/types';
 
 interface TradeDetailSheetProps {
@@ -25,8 +25,8 @@ export function TradeDetailSheet({
   open,
   onOpenChange,
 }: TradeDetailSheetProps) {
-  const { t, i18n } = useTranslation();
-  const locale = (i18n.language === 'fa' ? 'fa' : 'en') as Locale;
+  const { t } = useTranslation();
+  const { locale } = useLocale();
   if (!trade) return null;
 
   const rows: Array<[string, ReactNode]> = [

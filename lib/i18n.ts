@@ -10,8 +10,17 @@ const resources = {
 };
 
 let initialized = false;
+let documentScoped = false;
 
-export async function initI18n(locale: Locale = 'fa') {
+/**
+ * @param options.scoped — don't touch `<html lang/dir>`; used when rendering
+ * inside a host page (content script) that owns its own document.
+ */
+export async function initI18n(
+  locale: Locale = 'fa',
+  options: { scoped?: boolean } = {},
+) {
+  documentScoped = options.scoped ?? false;
   if (!initialized) {
     await i18n.use(initReactI18next).init({
       resources,
@@ -29,7 +38,7 @@ export async function initI18n(locale: Locale = 'fa') {
 
 export function applyDocumentDirection(locale: Locale) {
   const dir = locale === 'fa' ? 'rtl' : 'ltr';
-  if (typeof document !== 'undefined') {
+  if (!documentScoped && typeof document !== 'undefined') {
     document.documentElement.lang = locale;
     document.documentElement.dir = dir;
   }

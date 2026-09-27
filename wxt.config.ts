@@ -15,6 +15,12 @@ export default defineConfig({
     description: 'Trade journaling alongside TradingView',
     permissions: ['storage', 'sidePanel', 'tabs'],
     host_permissions: ['*://*.tradingview.com/*'],
+    web_accessible_resources: [
+      {
+        resources: ['fonts/vazir/*', 'fonts/montserrat/*'],
+        matches: ['*://*.tradingview.com/*'],
+      },
+    ],
     action: {
       default_title: 'TV Trade Journal',
     },

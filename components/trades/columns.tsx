@@ -8,7 +8,7 @@ import {
   type CreateActionsColumnOptions,
   type DataTableCustomAction,
 } from '@/components/data-table/data-table-row-actions';
-import { formatDate } from '@/lib/date';
+import { DATE_PATTERNS, formatDate } from '@/lib/date';
 import type { Locale } from '@/lib/schemas';
 import type { Trade } from '@/lib/types';
 
@@ -36,11 +36,7 @@ export function getTradeColumns({
         <DataTableColumnHeader column={column} title={t('trades.columns.date')} />
       ),
       cell: ({ row }) =>
-        formatDate(
-          row.original.createdAt,
-          locale === 'fa' ? 'YYYY/MM/DD' : 'YYYY-MM-DD',
-          locale,
-        ),
+        formatDate(row.original.createdAt, DATE_PATTERNS[locale].date, locale),
     },
     {
       accessorKey: 'symbol',

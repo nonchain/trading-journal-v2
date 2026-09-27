@@ -8,7 +8,7 @@ import {
   PnlCalendarHeatmap,
 } from '@/components/charts/journal-charts';
 import { EmptyState } from '@/components/shared/empty-state';
-import type { Locale } from '@/lib/schemas';
+import { useLocale } from '@/hooks/use-locale';
 import type { JournalStats } from '@/lib/types';
 
 export function OverviewPage({
@@ -20,8 +20,8 @@ export function OverviewPage({
   loading: boolean;
   onNewTrade: () => void;
 }) {
-  const { t, i18n } = useTranslation();
-  const locale = (i18n.language === 'fa' ? 'fa' : 'en') as Locale;
+  const { t } = useTranslation();
+  const { locale } = useLocale();
 
   if (loading || !stats) {
     return (

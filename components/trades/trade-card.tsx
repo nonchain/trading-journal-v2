@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { NumberValue } from '@/components/ui/number-value';
+import { useLocale } from '@/hooks/use-locale';
 import { formatDateTime } from '@/lib/date';
-import type { Locale } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
 import type { Trade } from '@/lib/types';
 
@@ -13,8 +13,8 @@ interface TradeCardProps {
 }
 
 export function TradeCard({ trade, onClick, compact }: TradeCardProps) {
-  const { t, i18n } = useTranslation();
-  const locale = (i18n.language === 'fa' ? 'fa' : 'en') as Locale;
+  const { t } = useTranslation();
+  const { locale } = useLocale();
 
   return (
     <button

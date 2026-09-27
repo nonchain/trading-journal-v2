@@ -3,6 +3,7 @@ import { I18nextProvider, useTranslation } from 'react-i18next';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
+import { registerAppFonts } from '@/lib/fonts';
 import { initI18n, i18n } from '@/lib/i18n';
 import { journalRepo } from '@/lib/storage';
 import { applyTheme } from '@/lib/theme';
@@ -13,27 +14,41 @@ function ToastHost() {
   return <Toaster rtl={rtl} />;
 }
 
+function ScopedLocale({ children }: { children: ReactNode }) {
+  const { i18n: i18nInstance } = useTranslation();
+  const locale = i18nInstance.language === 'en' ? 'en' : 'fa';
+  return (
+    <div lang={locale} dir={locale === 'fa' ? 'rtl' : 'ltr'}>
+      {children}
+    </div>
+  );
+}
+
 export function AppProviders({
   children,
   compact,
+  scoped,
 }: {
   children: ReactNode;
   compact?: boolean;
+  /** Rendering inside a host page: keep lang/dir on our own root, not `<html>`. */
+  scoped?: boolean;
 }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    registerAppFonts();
     let alive = true;
     (async () => {
       const settings = await journalRepo.getSettings();
-      await initI18n(settings.locale);
+      await initI18n(settings.locale, { scoped });
       applyTheme(settings.theme);
       if (alive) setReady(true);
     })();
     return () => {
       alive = false;
     };
-  }, []);
+  }, [scoped]);
 
   if (!ready) {
     return (
@@ -45,11 +60,17 @@ export function AppProviders({
     );
   }
 
+  const content = (
+    <>
+      {children}
+      <ToastHost />
+    </>
+  );
+
   return (
     <I18nextProvider i18n={i18n}>
       <TooltipProvider delayDuration={200}>
-        {children}
-        <ToastHost />
+        {scoped ? <ScopedLocale>{content}</ScopedLocale> : content}
       </TooltipProvider>
     </I18nextProvider>
   );
