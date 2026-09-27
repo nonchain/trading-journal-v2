@@ -184,34 +184,3 @@ export function computeStats(trades: Trade[]): JournalStats {
     rDistribution,
   };
 }
-
-export function computeTradeMetrics(input: {
-  direction: 'long' | 'short';
-  entryPrice: number;
-  exitPrice?: number;
-  stopLoss?: number;
-  size: number;
-  riskAmount?: number;
-}): { pnl?: number; rMultiple?: number; riskAmount?: number } {
-  const { direction, entryPrice, exitPrice, stopLoss, size } = input;
-  let riskAmount = input.riskAmount;
-
-  if (riskAmount == null && stopLoss != null) {
-    riskAmount = Math.abs(entryPrice - stopLoss) * size;
-  }
-
-  let pnl: number | undefined;
-  if (exitPrice != null) {
-    pnl =
-      direction === 'long'
-        ? (exitPrice - entryPrice) * size
-        : (entryPrice - exitPrice) * size;
-  }
-
-  let rMultiple: number | undefined;
-  if (pnl != null && riskAmount != null && riskAmount > 0) {
-    rMultiple = pnl / riskAmount;
-  }
-
-  return { pnl, rMultiple, riskAmount };
-}

@@ -68,6 +68,8 @@
   --chart-5: oklch(0.65 0.16 40);
   --profit: oklch(0.55 0.15 155);
   --loss: oklch(0.55 0.2 25);
+  --scrollbar-thumb: oklch(0.18 0.02 255 / 16%);
+  --scrollbar-thumb-hover: oklch(0.18 0.02 255 / 32%);
 }
 
 .dark {
@@ -96,6 +98,8 @@
   --chart-5: oklch(0.72 0.16 40);
   --profit: oklch(0.7 0.15 155);
   --loss: oklch(0.68 0.18 25);
+  --scrollbar-thumb: oklch(1 0 0 / 14%);
+  --scrollbar-thumb-hover: oklch(1 0 0 / 28%);
 }
 
 @layer base {
@@ -121,5 +125,49 @@
   html:lang(fa),
   [lang="fa"] {
     font-family: var(--font-fa);
+  }
+
+  /*
+   * Chromium ignores ::-webkit-scrollbar once scrollbar-color/width are set,
+   * so the standard properties are limited to engines without the pseudo-elements.
+   */
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--scrollbar-thumb, oklch(0.5 0 0 / 30%)) transparent;
+    }
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+
+  /* Transparent border + content-box clip keeps the thumb slim and inset; it widens on hover. */
+  ::-webkit-scrollbar-thumb {
+    min-height: 40px;
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-color: var(--scrollbar-thumb, oklch(0.5 0 0 / 30%));
+    background-clip: content-box;
+    transition: background-color 150ms ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    border-width: 2px;
+    background-color: var(--scrollbar-thumb-hover, oklch(0.5 0 0 / 50%));
+  }
+
+  ::-webkit-scrollbar-thumb:active {
+    background-color: var(--scrollbar-thumb-hover, oklch(0.5 0 0 / 50%));
   }
 }

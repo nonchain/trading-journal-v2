@@ -13,7 +13,13 @@ import {
   type Trade,
   type TradeFormValues,
 } from './schemas';
-import { computeStats, computeTradeMetrics } from './stats';
+import {
+  computePosition,
+  MIN_LEVERAGE,
+  needsQuoteRate,
+  tradeMarket,
+} from './markets';
+import { computeStats } from './stats';
 import type { JournalStats } from './types';
 import { uid } from './utils';
 
@@ -119,14 +125,23 @@ function toTrade(
     takeProfit,
   );
 
+  const leverage = optionalNumber(values.leverage);
+  const quoteRate = needsQuoteRate(values.symbol, values.market)
+    ? optionalNumber(values.quoteRate)
+    : undefined;
+
   // Form doesn't edit risk directly — always derive from stop when available
   // so correcting SL after close refreshes R-multiple.
-  const metrics = computeTradeMetrics({
+  const metrics = computePosition({
+    market: values.market,
+    symbol: values.symbol,
     direction: values.direction,
     entryPrice: values.entryPrice,
     exitPrice,
     stopLoss,
     size: values.size,
+    leverage,
+    quoteRate,
     riskAmount: stopLoss != null ? undefined : optionalNumber(values.riskAmount),
   });
 
@@ -146,7 +161,10 @@ function toTrade(
     exitPrice,
     stopLoss,
     takeProfit,
+    market: values.market,
     size: values.size,
+    leverage,
+    quoteRate,
     riskAmount: metrics.riskAmount,
     rMultiple: metrics.rMultiple,
     pnl: metrics.pnl,
@@ -166,8 +184,10 @@ function toTrade(
   });
 }
 
-function tradeToFormValues(trade: Trade): TradeFormValues {
+export function tradeToFormValues(trade: Trade): TradeFormValues {
+  const market = tradeMarket(trade);
   return {
+    market,
     symbol: trade.symbol,
     direction: trade.direction,
     entryPrice: trade.entryPrice,
@@ -175,6 +195,8 @@ function tradeToFormValues(trade: Trade): TradeFormValues {
     stopLoss: trade.stopLoss,
     takeProfit: trade.takeProfit,
     size: trade.size,
+    leverage: trade.leverage ?? MIN_LEVERAGE,
+    quoteRate: trade.quoteRate,
     riskAmount: trade.riskAmount,
     setupTag: trade.setupTag,
     emotionTag: trade.emotionTag,

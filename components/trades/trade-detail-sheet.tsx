@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/sheet';
 import { useLocale } from '@/hooks/use-locale';
 import { formatDateTime } from '@/lib/date';
+import { computePosition, tradeMarket } from '@/lib/markets';
 import type { Trade } from '@/lib/types';
 
 interface TradeDetailSheetProps {
@@ -28,6 +29,9 @@ export function TradeDetailSheet({
   const { t } = useTranslation();
   const { locale } = useLocale();
   if (!trade) return null;
+
+  const market = tradeMarket(trade);
+  const position = computePosition({ ...trade, market });
 
   const rows: Array<[string, ReactNode]> = [
     [t('trades.fields.symbol'), trade.symbol],
@@ -53,9 +57,30 @@ export function TradeDetailSheet({
         locale={locale}
       />,
     ],
+    [t('trades.fields.market'), t(`trades.market.${market}`)],
     [
-      t('trades.fields.size'),
-      <NumberValue key="size" value={trade.size} locale={locale} />,
+      t('trades.fields.lotSize'),
+      <NumberValue key="size" value={trade.size} decimals={3} locale={locale} />,
+    ],
+    [
+      t('trades.fields.leverage'),
+      trade.leverage != null ? (
+        <span key="leverage" dir="ltr">
+          {market === 'forex' ? '1:' : '×'}
+          <NumberValue value={trade.leverage} decimals={0} locale={locale} />
+        </span>
+      ) : (
+        '—'
+      ),
+    ],
+    [
+      t('trades.fields.margin'),
+      <NumberValue
+        key="margin"
+        value={position.margin}
+        variant="currency"
+        locale={locale}
+      />,
     ],
     [
       t('trades.columns.rMultiple'),

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import type { ControllerProps, FieldPath, FieldValues } from 'react-hook-form';
 import { Controller, FormProvider, useFormContext } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
@@ -89,9 +90,27 @@ function FormControl({ ...props }: React.ComponentProps<'div'>) {
   );
 }
 
+function FormDescription({ className, ...props }: React.ComponentProps<'p'>) {
+  const { formDescriptionId } = useFormField();
+  return (
+    <p
+      id={formDescriptionId}
+      className={cn('text-xs text-muted-foreground', className)}
+      {...props}
+    />
+  );
+}
+
+/** Schema messages prefixed with `validation.` are i18n keys. */
 function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
+  const { t } = useTranslation();
   const { error, formMessageId } = useFormField();
-  const body = error ? String(error?.message ?? '') : props.children;
+  const message = String(error?.message ?? '');
+  const body = error
+    ? message.startsWith('validation.')
+      ? t(message)
+      : message
+    : props.children;
   if (!body) return null;
   return (
     <p
@@ -109,6 +128,7 @@ export {
   FormItem,
   FormLabel,
   FormControl,
+  FormDescription,
   FormMessage,
   FormField,
 };

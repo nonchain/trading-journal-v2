@@ -1,5 +1,13 @@
 import { z } from 'zod';
+import {
+  isLotStep,
+  MAX_LEVERAGE,
+  MIN_LEVERAGE,
+  MIN_LOT,
+  needsQuoteRate,
+} from './markets';
 
+export const marketSchema = z.enum(['forex', 'crypto']);
 export const directionSchema = z.enum(['long', 'short']);
 export const tradeStatusSchema = z.enum(['planned', 'open', 'closed']);
 export const closeReasonSchema = z.enum(['stopLoss', 'takeProfit']);
@@ -14,7 +22,13 @@ export const tradeSchema = z.object({
   exitPrice: z.number().finite().positive().optional(),
   stopLoss: z.number().finite().positive().optional(),
   takeProfit: z.number().finite().positive().optional(),
+  /** Missing on trades logged before markets existed — those use raw units. */
+  market: marketSchema.optional(),
+  /** Lots for forex (× contract size), base-asset quantity for crypto. */
   size: z.number().finite().positive(),
+  leverage: z.number().finite().min(MIN_LEVERAGE).optional(),
+  /** Quote currency → USD rate for pairs like EURGBP. */
+  quoteRate: z.number().finite().positive().optional(),
   riskAmount: z.number().finite().nonnegative().optional(),
   rMultiple: z.number().finite().optional(),
   pnl: z.number().finite().optional(),
@@ -31,24 +45,55 @@ export const tradeSchema = z.object({
 
 const optionalPositive = z.number().finite().positive().optional();
 
-export const tradeFormSchema = z.object({
-  symbol: z.string().trim().min(1, 'Symbol is required').max(32),
-  direction: directionSchema,
-  entryPrice: z.number().finite().positive('Entry must be positive'),
-  exitPrice: optionalPositive,
-  stopLoss: optionalPositive,
-  takeProfit: optionalPositive,
-  size: z.number().finite().positive('Size must be positive'),
-  riskAmount: z.number().finite().nonnegative().optional(),
-  setupTag: z.string().min(1, 'Setup is required'),
-  emotionTag: z.string().optional(),
-  notes: z.string().max(4000).optional(),
-  status: tradeStatusSchema,
-  closeReason: closeReasonSchema.optional(),
-  screenshotDataUrl: z.string().optional(),
-  /** Trade datetime (ISO). Defaults to now on create. */
-  tradedAt: z.string().datetime().optional(),
-});
+/** Messages are i18n keys, translated by `FormMessage`. */
+export const tradeFormSchema = z
+  .object({
+    market: marketSchema,
+    symbol: z.string().trim().min(1, 'validation.symbolRequired').max(32),
+    direction: directionSchema,
+    entryPrice: z
+      .number('validation.numberRequired')
+      .finite()
+      .positive('validation.entryPositive'),
+    exitPrice: optionalPositive,
+    stopLoss: optionalPositive,
+    takeProfit: optionalPositive,
+    size: z
+      .number('validation.numberRequired')
+      .finite()
+      .min(MIN_LOT, 'validation.minLot')
+      .refine(isLotStep, 'validation.lotStep'),
+    leverage: z
+      .number('validation.numberRequired')
+      .int('validation.leverageInteger')
+      .min(MIN_LEVERAGE, 'validation.minLeverage'),
+    quoteRate: optionalPositive,
+    riskAmount: z.number().finite().nonnegative().optional(),
+    setupTag: z.string().min(1, 'validation.setupRequired'),
+    emotionTag: z.string().optional(),
+    notes: z.string().max(4000).optional(),
+    status: tradeStatusSchema,
+    closeReason: closeReasonSchema.optional(),
+    screenshotDataUrl: z.string().optional(),
+    /** Trade datetime (ISO). Defaults to now on create. */
+    tradedAt: z.string().datetime().optional(),
+  })
+  .superRefine((values, ctx) => {
+    if (values.leverage > MAX_LEVERAGE[values.market]) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['leverage'],
+        message: `validation.maxLeverage.${values.market}`,
+      });
+    }
+    if (needsQuoteRate(values.symbol, values.market) && values.quoteRate == null) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['quoteRate'],
+        message: 'validation.quoteRateRequired',
+      });
+    }
+  });
 
 export const setupSchema = z.object({
   id: z.string().min(1),
@@ -63,8 +108,8 @@ export const emotionTagSchema = z.object({
 });
 
 export const tagFormSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(48),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid color'),
+  name: z.string().trim().min(1, 'validation.nameRequired').max(48),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'validation.invalidColor'),
 });
 
 export const settingsSchema = z.object({
@@ -90,6 +135,7 @@ export type TagFormValues = z.infer<typeof tagFormSchema>;
 export type Settings = z.infer<typeof settingsSchema>;
 export type JournalExport = z.infer<typeof journalExportSchema>;
 export type Direction = z.infer<typeof directionSchema>;
+export type Market = z.infer<typeof marketSchema>;
 export type TradeStatus = z.infer<typeof tradeStatusSchema>;
 export type CloseReason = z.infer<typeof closeReasonSchema>;
 export type ThemeMode = z.infer<typeof themeSchema>;

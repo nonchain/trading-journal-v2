@@ -98,8 +98,51 @@
       "status": "Status",
       "date": "Trade date",
       "closedAt": "Exit time",
-      "captureScreenshot": "Capture chart"
+      "captureScreenshot": "Capture chart",
+      "market": "Market",
+      "lotSize": "Lot size",
+      "leverage": "Leverage",
+      "quoteRate": "{{quote}} → USD rate",
+      "margin": "Margin"
+    },
+    "market": {
+      "forex": "Forex",
+      "crypto": "Crypto"
+    },
+    "hints": {
+      "forexLot": "1 lot = {{units}} {{base}}",
+      "cryptoLot": "Quantity in {{base}}",
+      "baseFallback": "units",
+      "leverageRange": "From 1 to {{max}}",
+      "quoteRate": "USD value of 1 {{quote}}, used to convert P&L"
+    },
+    "summary": {
+      "units": "Units",
+      "pipValue": "Pip value",
+      "positionValue": "Position value",
+      "margin": "Required margin",
+      "liquidation": "Est. liquidation",
+      "risk": "Risk",
+      "reward": "Reward",
+      "riskReward": "Risk : Reward"
     }
+  },
+  "validation": {
+    "symbolRequired": "Symbol is required",
+    "setupRequired": "Setup is required",
+    "numberRequired": "Enter a number",
+    "entryPositive": "Entry must be positive",
+    "minLot": "Minimum lot size is 0.001",
+    "lotStep": "Lot size must be in steps of 0.001",
+    "minLeverage": "Minimum leverage is 1",
+    "leverageInteger": "Leverage must be a whole number",
+    "maxLeverage": {
+      "forex": "Maximum forex leverage is 1:2000",
+      "crypto": "Maximum crypto leverage is 200×"
+    },
+    "quoteRateRequired": "A USD conversion rate is required for this pair",
+    "nameRequired": "Name is required",
+    "invalidColor": "Invalid color"
   },
   "stats": {
     "title": "Statistics",

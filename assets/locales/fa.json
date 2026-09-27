@@ -98,8 +98,51 @@
       "status": "وضعیت",
       "date": "تاریخ معامله",
       "closedAt": "زمان خروج",
-      "captureScreenshot": "گرفتن اسکرین چارت"
+      "captureScreenshot": "گرفتن اسکرین چارت",
+      "market": "بازار",
+      "lotSize": "حجم (لات)",
+      "leverage": "اهرم",
+      "quoteRate": "نرخ {{quote}} به دلار",
+      "margin": "مارجین"
+    },
+    "market": {
+      "forex": "فارکس",
+      "crypto": "کریپتو"
+    },
+    "hints": {
+      "forexLot": "هر لات = {{units}} {{base}}",
+      "cryptoLot": "مقدار بر حسب {{base}}",
+      "baseFallback": "واحد",
+      "leverageRange": "از ۱ تا {{max}}",
+      "quoteRate": "ارزش دلاری هر {{quote}}؛ برای تبدیل سود و زیان"
+    },
+    "summary": {
+      "units": "واحد پایه",
+      "pipValue": "ارزش هر پیپ",
+      "positionValue": "ارزش پوزیشن",
+      "margin": "مارجین لازم",
+      "liquidation": "لیکوئید (تخمینی)",
+      "risk": "ریسک",
+      "reward": "سود هدف",
+      "riskReward": "ریسک به ریوارد"
     }
+  },
+  "validation": {
+    "symbolRequired": "نماد الزامی است",
+    "setupRequired": "ستاپ الزامی است",
+    "numberRequired": "یک عدد وارد کنید",
+    "entryPositive": "قیمت ورود باید مثبت باشد",
+    "minLot": "حداقل حجم ۰٫۰۰۱ لات است",
+    "lotStep": "حجم باید مضربی از ۰٫۰۰۱ باشد",
+    "minLeverage": "حداقل اهرم ۱ است",
+    "leverageInteger": "اهرم باید عدد صحیح باشد",
+    "maxLeverage": {
+      "forex": "حداکثر اهرم فارکس ۱:۲۰۰۰ است",
+      "crypto": "حداکثر اهرم کریپتو ۲۰۰× است"
+    },
+    "quoteRateRequired": "برای این جفت‌ارز نرخ تبدیل به دلار لازم است",
+    "nameRequired": "نام الزامی است",
+    "invalidColor": "رنگ نامعتبر است"
   },
   "stats": {
     "title": "آمار",

@@ -47,7 +47,14 @@ export function getTradeColumns({
         />
       ),
       cell: ({ row }) => (
-        <span className="font-medium">{row.original.symbol}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-medium">{row.original.symbol}</span>
+          {row.original.market && (
+            <Badge variant="outline" className="text-[10px] font-normal">
+              {t(`trades.market.${row.original.market}`)}
+            </Badge>
+          )}
+        </div>
       ),
     },
     {
